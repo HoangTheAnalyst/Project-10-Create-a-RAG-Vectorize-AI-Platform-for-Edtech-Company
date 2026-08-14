@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: fct_chunks
+    description: "Fact table for ingested chunks with vector representation."
+    columns:
+      - name: chunk_sk
+        description: "Surrogate key for the chunk"
+        tests:
+          - not_null
+          - unique
+      - name: content_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['theory', 'exercise']
+
+      - name: subject
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['History', 'Literature', 'Geography']
+
+      - name: lesson_sk
+        description: "Surrogate key for the lesson"
+        tests:
+          - not_null
+
+      - name: section_title
+        tests:
+          - not_null
+
+      - name: content
+        description: "Main text payload to be vectorized"
+        tests:
+          - not_null
+
+      - name: chunk_vector
+        description: "Vector representation of the chunk content"
+        tests:
+          - not_null
+
+      - name: ingested_at
+        description: "Timestamp when the chunk was ingested into the fact table"
+        tests:
+          - not_null
+  
+  - name: dim_lesson
+    description: "Dimension table for lessons."
+    columns:
+      - name: lesson_sk
+        description: "Surrogate key for the lesson"
+        tests:
+          - not_null
+          - unique
+
+      - name: subject
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['History', 'Literature', 'Geography']
+
+      - name: lesson_name
+        tests:
+          - not_null

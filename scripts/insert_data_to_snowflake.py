@@ -4,12 +4,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 import snowflake.connector
 
-# Load environment variables from .env file
 load_dotenv()
 
 
 def get_snowflake_connection():
-    """Establish and return a connection to Snowflake."""
+    """Establish and return a Snowflake connection."""
     return snowflake.connector.connect(
         user=os.getenv("SNOWFLAKE_USER"),
         password=os.getenv("SNOWFLAKE_PASSWORD"),
@@ -20,34 +19,17 @@ def get_snowflake_connection():
     )
 
 
-def initialize_raw_table(cursor):
-    """Create the destination RAW table if it does not exist."""
-    create_table_sql = """
-    CREATE TABLE IF NOT EXISTS RAW_CHUNKS (
-        chunk_id VARCHAR(100),
-        file_name VARCHAR(255),
-        subject VARCHAR(100),
-        lesson_name VARCHAR(255),
-        content_type VARCHAR(50),
-        section_title VARCHAR(255),
-        content VARCHAR,
-        raw_metadata VARIANT,
-        ingested_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
-    );
-    """
-    cursor.execute(create_table_sql)
-    print("✓ Initialized RAW.RAW_CHUNKS table.")
-
-
-def collect_all_chunks(base_dir: str = "documents/chunking_documents") -> list:
-    """Read all JSON chunk files recursively from the chunking directory."""
-    base_path = Path(base_dir)
+def load_to_snowflake(input_base: str = "documents/embedded_documents"):
+    base_path = Path(input_base)
     json_files = list(base_path.rglob("*.json"))
 
     if not json_files:
-        print(f"[WARNING] No JSON files found in '{base_dir}'")
-        return []
+        print(
+            f"[WARNING] No embedded JSON files found in '{input_base}'. Please run step 5 first."
+        )
+        return
 
+    # 1. Thu thập toàn bộ chunks từ tất cả các file JSON
     all_records = []
     for jf in json_files:
         with open(jf, "r", encoding="utf-8") as f:
@@ -58,27 +40,36 @@ def collect_all_chunks(base_dir: str = "documents/chunking_documents") -> list:
                 all_records.append(data)
 
     print(
-        f"✓ Collected {len(all_records)} chunks from {len(json_files)} files."
+        f"🚀 Loaded {len(all_records)} chunks from {len(json_files)} JSON files."
     )
-    return all_records
-
-
-def load_chunks_to_snowflake():
-    """Main execution pipeline to batch ingest data into Snowflake."""
-    chunks = collect_all_chunks("documents/chunking_documents")
-    if not chunks:
-        print("No data to load. Exiting.")
-        return
-
     print("🚀 Connecting to Snowflake...")
+
     conn = get_snowflake_connection()
     cur = conn.cursor()
 
     try:
-        # 1. Setup table
-        initialize_raw_table(cur)
+        # 2. Đảm bảo Schema RAW tồn tại
+        cur.execute("CREATE SCHEMA IF NOT EXISTS RAW;")
 
-        # 2. Prepare batch insert query
+        # 3. Tạo mới (hoặc làm sạch hoàn toàn) bảng RAW_CHUNKS
+        create_table_sql = """
+        CREATE OR REPLACE TABLE RAW_CHUNKS (
+            chunk_id VARCHAR(255),
+            file_name VARCHAR(255),
+            subject VARCHAR(100),
+            lesson_name VARCHAR(255),
+            content_type VARCHAR(50),
+            section_title VARCHAR(255),
+            content VARCHAR,
+            chunk_vector ARRAY,
+            raw_metadata VARIANT,
+            ingested_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+        );
+        """
+        cur.execute(create_table_sql)
+        print("✓ Created/Replaced table RAW.RAW_CHUNKS successfully.")
+
+        # 4. Chuẩn bị câu lệnh chèn dữ liệu theo Batch
         insert_sql = """
         INSERT INTO RAW_CHUNKS (
             chunk_id,
@@ -88,6 +79,7 @@ def load_chunks_to_snowflake():
             content_type,
             section_title,
             content,
+            chunk_vector,
             raw_metadata
         )
         SELECT 
@@ -98,12 +90,13 @@ def load_chunks_to_snowflake():
             column5, 
             column6, 
             column7, 
-            PARSE_JSON(column8)
-        FROM VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            PARSE_JSON(column8), 
+            PARSE_JSON(column9)
+        FROM VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
-        # 3. Format records as tuples
-        rows_to_insert = [
+        # 5. Format dữ liệu thành danh sách Tuples
+        rows = [
             (
                 c.get("chunk_id"),
                 c.get("file_name"),
@@ -112,28 +105,28 @@ def load_chunks_to_snowflake():
                 c.get("content_type"),
                 c.get("section_title"),
                 c.get("content"),
-                json.dumps(
-                    c
-                ),  # Preserve full JSON payload inside VARIANT column
+                json.dumps(c.get("chunk_vector", [])),
+                json.dumps(c),
             )
-            for c in chunks
+            for c in all_records
         ]
 
-        print(f"🚀 Ingesting {len(rows_to_insert)} rows into RAW.RAW_CHUNKS...")
-        cur.executemany(insert_sql, rows_to_insert)
+        # 6. Thực thi Insert toàn bộ dữ liệu
+        print(f"🚀 Ingesting {len(rows)} records into RAW.RAW_CHUNKS...")
+        cur.executemany(insert_sql, rows)
         conn.commit()
 
         print(
-            f"✅ Successfully loaded {len(rows_to_insert)} chunks into Snowflake RAW.RAW_CHUNKS!"
+            f"✅ Successfully ingested {len(rows)} records into Snowflake RAW.RAW_CHUNKS!"
         )
 
     except Exception as e:
         conn.rollback()
-        print(f"✗ Ingestion failed: {e}")
+        print(f"✗ Load to Snowflake failed: {e}")
     finally:
         cur.close()
         conn.close()
 
 
 if __name__ == "__main__":
-    load_chunks_to_snowflake()
+    load_to_snowflake()

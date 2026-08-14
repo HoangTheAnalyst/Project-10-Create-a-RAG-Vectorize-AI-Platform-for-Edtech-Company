@@ -1,0 +1,55 @@
+version: 2
+
+sources:
+  - name: raw_source
+    database: RAG_AI_PLATFORM
+    schema: RAW
+    tables:
+      - name: raw_chunks
+        description: "Raw ingested chunks from local JSON batch pipeline."
+        columns:
+          - name: chunk_id
+            description: "Primary identifier for raw chunks"
+            tests:
+              - not_null
+              - unique
+
+          - name: file_name
+            tests:
+              - not_null
+
+          - name: subject
+            tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ['History', 'Literature', 'Geography']
+
+          - name: lesson_name
+            tests:
+              - not_null
+
+          - name: content_type
+            tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ['theory', 'exercise']
+
+          - name: section_title
+            tests:
+              - not_null
+
+          - name: content
+            description: "Main text payload to be vectorized"
+            tests:
+              - not_null
+          - name: chunk_vector
+            description: "Vector representation of the chunk content"
+            tests:
+              - not_null
+          - name: ingested_at
+            description: "Timestamp when the chunk was ingested into the staging model"
+            tests:
+              - not_null
+          

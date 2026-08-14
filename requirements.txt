@@ -4,3 +4,5 @@ snowflake-connector-python
 python-docx
 streamlit
 python-dotenv
+sentence-transformers
+google-genai
