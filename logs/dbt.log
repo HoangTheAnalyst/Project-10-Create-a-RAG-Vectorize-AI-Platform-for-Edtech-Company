@@ -1,0 +1,88 @@
+[0m11:36:32.441360 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FFA9856120>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FFA5EE5090>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FFABD07C50>]}
+
+
+============================== 11:36:32.444620 | 7a01b7c6-4331-4cb9-8f4f-76bc1c0de5ed ==============================
+[0m11:36:32.444620 [info ] [MainThread]: Running with dbt=1.12.2
+[0m11:36:32.445122 [debug] [MainThread]: running dbt with arguments {'maximum_seed_size_mib': '1', 'no_print': 'None', 'version_check': 'True', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'static_parser': 'True', 'printer_width': '80', 'write_json': 'True', 'empty': 'None', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'fail_fast': 'False', 'debug': 'False', 'log_format': 'default', 'profiles_dir': 'C:\\Users\\ADMIN\\.dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'use_colors': 'True', 'hints_enabled': 'True', 'indirect_selection': 'eager', 'use_experimental_parser': 'False', 'invocation_command': 'dbt init RAG_AI_DBT', 'log_path': 'logs'}
+[0m11:36:32.622107 [debug] [MainThread]: Starter project path: E:\Project 10 - Create a RAG Vectorize AI Platform for Edtech Company\.venv\Lib\site-packages\dbt\include\starter_project
+[0m11:36:32.655961 [info ] [MainThread]: Setting up your profile.
+[0m11:36:38.165587 [debug] [MainThread]: Snowflake adapter: Setting snowflake.connector to ERROR (file logging only)
+[0m11:36:38.165948 [debug] [MainThread]: Snowflake adapter: Setting botocore to ERROR (file logging only)
+[0m11:36:38.166192 [debug] [MainThread]: Snowflake adapter: Setting boto3 to ERROR (file logging only)
+[0m11:37:54.138593 [info ] [MainThread]: Profile RAG_AI_DBT written to C:\Users\ADMIN\.dbt\profiles.yml using target's profile_template.yml and your supplied values.
+[0m11:37:54.153699 [info ] [MainThread]: Running dbt debug to validate the project...
+[0m11:37:54.154568 [info ] [MainThread]: dbt version: 1.12.2
+[0m11:37:54.155064 [info ] [MainThread]: python version: 3.13.14
+[0m11:37:54.155466 [info ] [MainThread]: python path: E:\Project 10 - Create a RAG Vectorize AI Platform for Edtech Company\.venv\Scripts\python.exe
+[0m11:37:54.155785 [info ] [MainThread]: os info: Windows-11-10.0.26200-SP0
+[0m11:37:54.224198 [info ] [MainThread]: Using profiles dir at C:\Users\ADMIN\.dbt
+[0m11:37:54.224677 [info ] [MainThread]: Using profiles.yml file at C:\Users\ADMIN\.dbt\profiles.yml
+[0m11:37:54.225020 [info ] [MainThread]: Using dbt_project.yml file at E:\Project 10 - Create a RAG Vectorize AI Platform for Edtech Company\RAG_AI_DBT\dbt_project.yml
+[0m11:37:54.225620 [info ] [MainThread]: adapter type: snowflake
+[0m11:37:54.225904 [info ] [MainThread]: adapter version: 1.12.0
+[0m11:37:54.328763 [info ] [MainThread]: Configuration:
+[0m11:37:54.329310 [info ] [MainThread]:   profiles.yml file [[32mOK found and valid[0m]
+[0m11:37:54.329669 [info ] [MainThread]:   dbt_project.yml file [[32mOK found and valid[0m]
+[0m11:37:54.329971 [info ] [MainThread]: Required dependencies:
+[0m11:37:54.330269 [debug] [MainThread]: Executing "git --help"
+[0m11:37:54.366722 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Set `HEAD` or the index to a known state\n   switch     Switch branches\n   tag        Create, list, delete or verify tags\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m11:37:54.367184 [debug] [MainThread]: STDERR: "b''"
+[0m11:37:54.367503 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m11:37:54.367878 [info ] [MainThread]: Connection:
+[0m11:37:54.368196 [info ] [MainThread]:   account: GNWQEHW-YG34455
+[0m11:37:54.368455 [info ] [MainThread]:   user: HOANGTHEANALYST
+[0m11:37:54.368834 [info ] [MainThread]:   database: RAG_AI_PLATFORM
+[0m11:37:54.369124 [info ] [MainThread]:   warehouse: COMPUTE_WH
+[0m11:37:54.369351 [info ] [MainThread]:   role: ACCOUNTADMIN
+[0m11:37:54.369560 [info ] [MainThread]:   schema: RAW
+[0m11:37:54.369762 [info ] [MainThread]:   authenticator: None
+[0m11:37:54.370095 [info ] [MainThread]:   oauth_client_id: None
+[0m11:37:54.370434 [info ] [MainThread]:   query_tag: None
+[0m11:37:54.370779 [info ] [MainThread]:   client_session_keep_alive: False
+[0m11:37:54.371158 [info ] [MainThread]:   host: None
+[0m11:37:54.371522 [info ] [MainThread]:   port: None
+[0m11:37:54.371876 [info ] [MainThread]:   proxy_host: None
+[0m11:37:54.372207 [info ] [MainThread]:   proxy_port: None
+[0m11:37:54.372477 [info ] [MainThread]:   protocol: None
+[0m11:37:54.372816 [info ] [MainThread]:   connect_retries: 1
+[0m11:37:54.373199 [info ] [MainThread]:   connect_timeout: None
+[0m11:37:54.373667 [info ] [MainThread]:   retry_on_database_errors: False
+[0m11:37:54.374079 [info ] [MainThread]:   retry_all: False
+[0m11:37:54.374388 [info ] [MainThread]:   insecure_mode: False
+[0m11:37:54.374674 [info ] [MainThread]:   reuse_connections: True
+[0m11:37:54.374964 [info ] [MainThread]:   s3_stage_vpce_dns_name: None
+[0m11:37:54.375230 [info ] [MainThread]:   workload_identity_provider: None
+[0m11:37:54.375449 [info ] [MainThread]:   workload_identity_entra_resource: None
+[0m11:37:54.375664 [info ] [MainThread]:   platform_detection_timeout_seconds: 0.0
+[0m11:37:54.376031 [info ] [MainThread]: Registered adapter: snowflake=1.12.0
+[0m11:37:54.540373 [debug] [MainThread]: Acquiring new snowflake connection 'debug'
+[0m11:37:54.549671 [debug] [MainThread]: Using snowflake connection "debug"
+[0m11:37:54.549950 [debug] [MainThread]: On debug: select 1 as id
+[0m11:37:54.550136 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m11:37:55.760661 [debug] [MainThread]: SQL status: SUCCESS 1 in 1.210 seconds
+[0m11:37:55.761903 [info ] [MainThread]:   Connection test: [[32mOK connection ok[0m]
+
+[0m11:37:55.762560 [info ] [MainThread]: [32mAll checks passed![0m
+[0m11:37:55.762962 [info ] [MainThread]: Your new dbt project "RAG_AI_DBT" was created!
+Initialized new project in E:\Project 10 - Create a RAG Vectorize AI Platform for Edtech Company\RAG_AI_DBT\RAG_AI_DBT
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m11:37:55.763684 [debug] [MainThread]: Command `dbt init` succeeded at 11:37:55.763588 after 83.45 seconds
+[0m11:37:55.763919 [debug] [MainThread]: Connection 'debug' was left open.
+[0m11:37:55.764125 [debug] [MainThread]: On debug: Close
+[0m11:37:55.846328 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FFADD73950>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FFAE1F70B0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FFADFDBF00>]}
+[0m11:37:55.846745 [debug] [MainThread]: Flushing usage events
+[0m11:37:56.975508 [debug] [MainThread]: An error was encountered while trying to flush usage events
