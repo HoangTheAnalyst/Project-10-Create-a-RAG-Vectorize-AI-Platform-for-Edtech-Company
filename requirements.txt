@@ -1,3 +1,6 @@
 dbt-core
 dbt-snowflake
-langchain.text.splitters
+snowflake-connector-python
+python-docx
+streamlit
+python-dotenv

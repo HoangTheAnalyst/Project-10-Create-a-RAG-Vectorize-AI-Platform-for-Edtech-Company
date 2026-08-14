@@ -1,0 +1,23 @@
+# Dân cư, Lao động và Đô thị của Việt Nam (Vietnam's Demographics and Urbanization)
+
+Dân cư, Lao động và Đô thị của Việt Nam
+
+### I. Đại cương về Dân cư Việt Nam:
+
+- Mật độ dân số cao, dân số trẻ - vàng, tốc độ tăng trưởng trung bình thấp,  tỉ lệ dân thành thị chưa cao
+- Có 54 dân tộc anh em, trong đó người Kinh ( Việt ) chiếm đa số , còn lại là các dân tộc thiểu số.
+- Phân bố dân cư nhiều các vùng đồng bằng , thưa thớt ở vùng núi.
+=> Tạo điều kiện cho Việt Nam có lực lượng lao động dồi dào, mức sống tương đối ổn định. Tuy nhiên, vẫn còn nhiều thách thức về các vấn đề xã hội ( y tế, giáo dục, an ninh lương thực,... ). Sự phân bố dân cư chênh lệch cũng là một trở ngại để phát triển đồng đều các khu vực.
+
+### II. Lao động tại Việt Nam
+
+- Đại cương:  Lao động dồi dào, chiếm 51,3% tổng số dân; chất lượng người lao động ngày càng được cải thiện nhờ ứng dụng tốt các thành tựu kĩ thuật, kinh tế,... vào đời sống.
+-  Phân bổ theo địa lí: Lực lượng lao động phân bổ nhiều nhất ở Đồng bằng sông Hồng. Ở Việt Nam, lực lượng lao động tại nông thôn vẫn chiếm chủ yếu.
+- Phân bổ theo cơ cấu kinh tế: Hiện nay, lao động phân bổ chuyển dần sang các ngành dịch vụ, công nghiệp ; vào các vùng ngoài Nhà nước và các vùng có vốn đầu tư nước ngoài.
+- Năng suất công việc : Tuy đa số người lao động Việt Nam đều có công việc, nhưng nhiều phần trong đó là các công việc giản đơn, yêu cầu năng lực thấp, dẫn tới năng suất công việc thấp. Do vậy, Nhà nước đang có những chính sách giúp tăng cường chất lượng lao động, bên cạnh việc đảm bảo sự an toàn và phát triển bên vững cho lực lượng lao động.
+
+### III. Đô thị tại Việt Nam
+
+- Đại cương: Tỉ lệ dân sống ở đô thị là 37,1% ; với 2 đầu tàu là Hà Nội và TP. Hồ Chí Minh
+- Phân loại đô thị : Việt Nam có khoàng 750 đô thị, được chia thành 6 loại : Đô thị đặc biệt , đô thị loại 1 , loại 2, loại 3, loại 4 và loại 5 ( theo chiều giảm dần về dân số ). Trung ương trực tiếp quản lý các đô thị đặc biệt ( gọi là thành phố trực thuộc trung ương ), trong khi các tỉnh và cấp dưới dưới quản lý các đô thị thường.
+- Tác động của đô thị hóa: Đô thị hóa nhìn chung sẽ giúp đất nước tiến theo hướng phát triển dịch vụ, công nghiệp hóa - hiện đại hóa, cải thiện rõ rệt đời sống của người dân. Tuy nhiên, quá tải về cơ sở hạ tầng và ô nhiễm môi trường sẽ là các vấn đề nhức nhối của đô thị hóa tại Việt Nam
