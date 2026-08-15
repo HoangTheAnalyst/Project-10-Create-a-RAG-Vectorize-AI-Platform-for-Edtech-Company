@@ -13,6 +13,7 @@ WITH stg_chunks AS (
         lesson_name,
         content_type,
         section_title,
+        chunk_type,
         content,
         chunk_vector,
         ingested_at
@@ -32,6 +33,7 @@ created_sk AS (
         section_title,
         content,
         chunk_vector,
+        chunk_type,
         ingested_at
     FROM stg_chunks
 )
@@ -42,6 +44,7 @@ SELECT
     subject,
     lesson_sk,
     section_title,
+    chunk_type,
     content,
     chunk_vector,
     ingested_at

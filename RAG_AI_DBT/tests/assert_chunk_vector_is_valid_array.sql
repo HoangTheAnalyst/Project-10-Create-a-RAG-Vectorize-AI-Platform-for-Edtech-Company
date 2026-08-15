@@ -7,4 +7,4 @@ FROM {{source('raw_source', 'raw_chunks') }}
 WHERE 
     chunk_vector IS NULL
     OR NOT IS_ARRAY(chunk_vector)
-    OR ARRAY_SIZE(chunk_vector) != 384
+    OR ARRAY_SIZE(chunk_vector) != 1024

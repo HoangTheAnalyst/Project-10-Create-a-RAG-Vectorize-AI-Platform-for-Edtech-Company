@@ -13,6 +13,7 @@ WITH raw_chunk AS (
         section_title,
         content,
         raw_metadata,
+        chunk_type,
         chunk_vector,
         ingested_at
     FROM {{ source('raw_source', 'raw_chunks') }}
@@ -24,6 +25,7 @@ clean_raw_chunk AS (
         TRIM(subject) AS subject,
         TRIM(lesson_name) AS lesson_name,
         TRIM(content_type) AS content_type,
+        TRIM(chunk_type) AS chunk_type,
         TRIM(section_title) AS section_title,
         REGEXP_REPLACE(content, '#+\\s*', ' ') AS content,
         CAST(chunk_vector AS ARRAY) AS chunk_vector,

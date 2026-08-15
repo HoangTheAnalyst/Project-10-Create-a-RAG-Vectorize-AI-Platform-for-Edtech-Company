@@ -1,4 +1,4 @@
-import os
+import argparse
 from pathlib import Path
 import re
 import docx
@@ -26,16 +26,12 @@ def iter_block_items(parent):
 
 
 def is_exercise_heading(text: str) -> bool:
-    """Check if the text represents an exercise question.
-
-    Matches any string starting with capitalized 'Câu' (e.g. 'Câu 1:', 'Câu
-    2.', 'Câu hỏi').
-    """
+    """Check if the text represents an exercise question (starts with 'Câu')."""
     cleaned = text.strip()
     return bool(re.match(r"^Câu(\s+\d+|\b)", cleaned))
 
 
-def format_table_to_md(table) -> str:
+def format_table_to_md(table: Table) -> str:
     """Convert a Word table into standard Markdown format."""
     rows = table.rows
     if not rows:
@@ -55,11 +51,7 @@ def format_table_to_md(table) -> str:
 # 2. CONVERT EXERCISE DOCX TO MARKDOWN
 # ----------------------------------------------------------------------
 def convert_exercise_docx_to_md(docx_path: Path, output_md_path: Path):
-    """Convert an Exercise .docx document into Markdown (.md):
-
-    - Level 3 Heading (###): Any line starting with capitalized 'Câu'.
-    - Preserves tables, answer options (A, B, C, D), and regular text.
-    """
+    """Convert an Exercise .docx document into Markdown (.md)."""
     doc = docx.Document(docx_path)
     lines = []
 
@@ -75,13 +67,11 @@ def convert_exercise_docx_to_md(docx_path: Path, output_md_path: Path):
         if not text:
             continue
 
-        # Exercise Heading Rule: Capitalized 'Câu' at the beginning
         if is_exercise_heading(text):
             lines.append(f"\n### {text}\n")
         else:
             lines.append(text)
 
-    # Ensure target output directory exists
     output_md_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_md_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -90,15 +80,14 @@ def convert_exercise_docx_to_md(docx_path: Path, output_md_path: Path):
 # ----------------------------------------------------------------------
 # 3. BATCH PROCESSING PIPELINE
 # ----------------------------------------------------------------------
-def convert_all_exercise_docs(
-    input_base: str = "documents/docx_documents/Exercise",
-    output_base: str = "documents/md_documents/Exercise",
+def batch_convert_exercise_documents(
+    input_base: str,
+    output_base: str,
 ):
-    """Recursively process: documents/docx_documents/Exercise/{Subject}/*.docx
-
-    And mirror output to: documents/md_documents/Exercise/{Subject}/*.md
-    """
+    """Recursively scans the input directory and mirrors converted Markdown files into the output directory."""
     input_path = Path(input_base)
+    output_path = Path(output_base)
+
     if not input_path.exists():
         print(f"[WARNING] Input path does not exist: '{input_base}'")
         return
@@ -111,19 +100,20 @@ def convert_all_exercise_docs(
         return
 
     print(
-        f"🚀 Starting exercise conversion for {len(docx_files)} files from"
-        f" '{input_base}' to '{output_base}'...\n"
+        f"🚀 Starting exercise conversion for {len(docx_files)} files: '{input_path}'"
+        f" -> '{output_path}'...\n"
     )
 
     for docx_file in docx_files:
         rel_path = docx_file.relative_to(input_path)
-        output_md_path = Path(output_base) / rel_path.with_suffix(".md")
+        output_md_path = output_path / rel_path.with_suffix(".md")
+        subject = rel_path.parts[0] if len(rel_path.parts) > 1 else "General"
 
         try:
             convert_exercise_docx_to_md(docx_file, output_md_path)
-            print(f"  ✓ [{rel_path.parent}] {docx_file.name} -> {output_md_path}")
+            print(f"  ✓ [{subject}] {docx_file.name} -> {output_md_path.name}")
         except Exception as err:
-            print(f"  ✗ Failed to process {docx_file.name}: {err}")
+            print(f"  ✗ Error processing {docx_file.name}: {err}")
 
     print(
         f"\n✅ Exercise conversion completed! All Markdown files are stored in"
@@ -131,8 +121,37 @@ def convert_all_exercise_docs(
     )
 
 
+# ----------------------------------------------------------------------
+# 4. CLI INTERFACE
+# ----------------------------------------------------------------------
 if __name__ == "__main__":
-    convert_all_exercise_docs(
-        input_base="documents/docx_documents/Exercise",
-        output_base="documents/md_documents/Exercise",
+    parser = argparse.ArgumentParser(
+        description="CLI Tool to convert Exercise .docx documents into Markdown format."
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        default="documents/docx_documents/Exercise",
+        help=(
+            "Path to source DOCX directory (Default:"
+            " documents/docx_documents/Exercise)"
+        ),
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="documents/md_documents/Exercise",
+        help=(
+            "Path to destination Markdown directory (Default:"
+            " documents/md_documents/Exercise)"
+        ),
+    )
+
+    args = parser.parse_args()
+
+    batch_convert_exercise_documents(
+        input_base=args.input,
+        output_base=args.output,
     )

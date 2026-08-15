@@ -1,5 +1,5 @@
+import argparse
 from collections import Counter
-import os
 from pathlib import Path
 import docx
 from docx.oxml.table import CT_Tbl
@@ -25,7 +25,7 @@ def iter_block_items(parent):
             yield Table(child, parent)
 
 
-def get_font_size(paragraph, default_size=12.0) -> float:
+def get_font_size(paragraph, default_size: float = 12.0) -> float:
     """Retrieve the maximum font size (in points) within a paragraph."""
     sizes = [
         run.font.size.pt for run in paragraph.runs if run.font and run.font.size
@@ -42,7 +42,7 @@ def is_bold(paragraph) -> bool:
     return any(run.bold for run in paragraph.runs if run.bold is not None)
 
 
-def format_table_to_md(table) -> str:
+def format_table_to_md(table: Table) -> str:
     """Convert a Word table into a standard Markdown table."""
     rows = table.rows
     if not rows:
@@ -99,7 +99,6 @@ def convert_theory_docx_to_md(docx_path: Path, output_md_path: Path):
         else:
             lines.append(text)
 
-    # Ensure target output directory exists
     output_md_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_md_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -108,15 +107,14 @@ def convert_theory_docx_to_md(docx_path: Path, output_md_path: Path):
 # ----------------------------------------------------------------------
 # 3. BATCH PROCESSING PIPELINE
 # ----------------------------------------------------------------------
-def convert_all_lecture_docs(
-    input_base: str = "documents/docx_documents/Lecture",
-    output_base: str = "documents/md_documents/Lecture",
+def batch_convert_lecture_documents(
+    input_base: str,
+    output_base: str,
 ):
-    """Recursively process: documents/docx_documents/Lecture/{Subject}/*.docx
-
-    And mirror output to: documents/md_documents/Lecture/{Subject}/*.md
-    """
+    """Recursively scans the input directory and mirrors converted Markdown files into the output directory."""
     input_path = Path(input_base)
+    output_path = Path(output_base)
+
     if not input_path.exists():
         print(f"[WARNING] Input path does not exist: '{input_base}'")
         return
@@ -129,29 +127,58 @@ def convert_all_lecture_docs(
         return
 
     print(
-        f"🚀 Starting conversion for {len(docx_files)} files from"
-        f" '{input_base}' to '{output_base}'...\n"
+        f"🚀 Starting lecture conversion for {len(docx_files)} files: '{input_path}'"
+        f" -> '{output_path}'...\n"
     )
 
     for docx_file in docx_files:
-        # Retain relative subject directory structure (e.g. History/ASEAN.docx)
         rel_path = docx_file.relative_to(input_path)
-        output_md_path = Path(output_base) / rel_path.with_suffix(".md")
+        output_md_path = output_path / rel_path.with_suffix(".md")
+        subject = rel_path.parts[0] if len(rel_path.parts) > 1 else "General"
 
         try:
             convert_theory_docx_to_md(docx_file, output_md_path)
-            print(f"  ✓ [{rel_path.parent}] {docx_file.name} -> {output_md_path}")
+            print(f"  ✓ [{subject}] {docx_file.name} -> {output_md_path.name}")
         except Exception as err:
-            print(f"  ✗ Failed to process {docx_file.name}: {err}")
+            print(f"  ✗ Error processing {docx_file.name}: {err}")
 
     print(
-        f"\n✅ Processing completed! All Markdown files are stored in"
+        f"\n✅ Lecture conversion completed! All Markdown files are stored in"
         f" '{output_base}'."
     )
 
 
+# ----------------------------------------------------------------------
+# 4. CLI INTERFACE
+# ----------------------------------------------------------------------
 if __name__ == "__main__":
-    convert_all_lecture_docs(
-        input_base="documents/docx_documents/Lecture",
-        output_base="documents/md_documents/Lecture",
+    parser = argparse.ArgumentParser(
+        description="CLI Tool to convert Lecture .docx documents into Markdown format."
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        default="documents/docx_documents/Lecture",
+        help=(
+            "Path to source DOCX directory (Default:"
+            " documents/docx_documents/Lecture)"
+        ),
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="documents/md_documents/Lecture",
+        help=(
+            "Path to destination Markdown directory (Default:"
+            " documents/md_documents/Lecture)"
+        ),
+    )
+
+    args = parser.parse_args()
+
+    batch_convert_lecture_documents(
+        input_base=args.input,
+        output_base=args.output,
     )

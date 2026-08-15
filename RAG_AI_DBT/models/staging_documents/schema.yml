@@ -31,6 +31,13 @@ models:
       - name: section_title
         tests:
           - not_null
+      - name: chunk_type
+        description: "Type of chunk (ex: lecture, question, answer )"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Lecture', 'Question', 'Answer']
       - name: chunk_vector
         description: "Vector representation of the chunk content"
         tests:

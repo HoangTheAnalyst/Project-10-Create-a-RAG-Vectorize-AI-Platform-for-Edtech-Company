@@ -39,7 +39,13 @@ sources:
           - name: section_title
             tests:
               - not_null
-
+          - name: chunk_type
+            description: "Type of chunk (ex: lecture, question, answer )"
+            tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ['Lecture', 'Question', 'Answer']
           - name: content
             description: "Main text payload to be vectorized"
             tests:

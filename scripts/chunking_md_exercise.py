@@ -1,37 +1,64 @@
+import argparse
 import json
-import os
 from pathlib import Path
 import re
+import unicodedata
 
 
 # ----------------------------------------------------------------------
-# 1. CORE EXERCISE MARKDOWN CHUNKING LOGIC
+# 1. HELPER FUNCTIONS
 # ----------------------------------------------------------------------
-def chunk_exercise_markdown(md_content: str, subject: str, lesson_name: str, file_name: str) -> list:
-    """
-    Split an exercise Markdown document into discrete question chunks based on '### ' headers.
-    Ensures question prompt and choices (A, B, C, D) stay in a single chunk.
-    """
+def sanitize_id(text: str) -> str:
+    """Normalize and convert special characters/Vietnamese text into a safe ASCII snake_case string."""
+    text = (
+        unicodedata.normalize("NFKD", text)
+        .encode("ascii", "ignore")
+        .decode("utf-8")
+    )
+    text = re.sub(r"[^\w\s-]", "", text).strip().lower()
+    return re.sub(r"[-\s]+", "_", text)
+
+
+# ----------------------------------------------------------------------
+# 2. CORE CHUNKING LOGIC
+# ----------------------------------------------------------------------
+def chunk_exercise_markdown(
+    md_content: str,
+    subject: str,
+    lesson_name: str,
+    file_name: str,
+) -> list:
+    """Splits an exercise Markdown document into standalone chunks based on '### ' headers."""
     lines = md_content.split("\n")
     chunks = []
-    
+
     current_lines = []
-    current_section = "Câu hỏi"
+    current_section = "Introduction"
     chunk_index = 1
+    sanitized_lesson = sanitize_id(lesson_name)
 
     def flush_chunk():
         nonlocal current_lines, current_section, chunk_index
         body = "\n".join(current_lines).strip()
         if body:
-            # Generate structured payload
+            is_answer = bool(
+                re.search(
+                    r"^Câu\s*\d+[\s:.\-_]*(\n\s*|\s+)[\*_]*đáp\s*án",
+                    body,
+                    re.IGNORECASE,
+                )
+            )
+            chunk_type = "Answer" if is_answer else "Question"
+
             chunk_payload = {
-                "chunk_id": f"{lesson_name.replace(' ', '_').lower()}_ex_{chunk_index:04d}",
+                "chunk_id": f"{sanitized_lesson}_ex_{chunk_index:04d}",
                 "file_name": file_name,
                 "subject": subject,
                 "lesson_name": lesson_name,
                 "content_type": "exercise",
                 "section_title": current_section,
-                "content": body
+                "chunk_type": chunk_type,
+                "content": body,
             }
             chunks.append(chunk_payload)
             chunk_index += 1
@@ -39,100 +66,143 @@ def chunk_exercise_markdown(md_content: str, subject: str, lesson_name: str, fil
 
     for line in lines:
         stripped = line.strip()
-        
-        # Detect Level 3 Exercise Heading (### Câu ...)
+
+        # Skip document-level H1 headers (# ...) at the top
+        if stripped.startswith("# ") and not chunks and not current_lines:
+            continue
+
+        # Detect question/answer H3 headers (### ...)
         if stripped.startswith("### "):
             flush_chunk()
             heading_text = stripped.replace("### ", "").strip()
-            
-            # Extract clean question label (e.g. 'Câu 1', 'Câu 2')
-            match = re.match(r"^(Câu\s*\d+)", heading_text)
-            current_section = match.group(1) if match else heading_text
-            
-            # Append question text (omitting the raw markdown header tag for cleaner embeddings)
+
+            match_prefix = re.match(r"^(Câu\s*\d+)", heading_text, re.IGNORECASE)
+            current_section = (
+                match_prefix.group(1) if match_prefix else heading_text
+            )
+
             current_lines.append(heading_text)
-        elif stripped.startswith("# ") and not current_lines:
-            # Skip initial file title
-            continue
         else:
             current_lines.append(line)
 
-    # Flush the final question chunk
     flush_chunk()
     return chunks
 
 
 # ----------------------------------------------------------------------
-# 2. FILE PROCESSOR & WRITER
+# 3. SINGLE FILE PROCESSOR
 # ----------------------------------------------------------------------
-def process_single_exercise_file(input_md_path: Path, output_json_path: Path) -> int:
-    """Read a Markdown exercise file, chunk it, and save chunks to a JSON file."""
-    with open(input_md_path, "r", encoding="utf-8") as f:
+def process_single_file(
+    input_file: Path,
+    output_file: Path,
+    subject: str,
+) -> int:
+    """Reads a Markdown file, chunks its contents, and persists the result as a JSON file."""
+    with open(input_file, "r", encoding="utf-8") as f:
         md_text = f.read()
-
-    # Extract subject and lesson name from directory structure
-    subject = input_md_path.parent.name
-    lesson_name = input_md_path.stem
-    file_name = input_md_path.name
 
     chunks = chunk_exercise_markdown(
         md_content=md_text,
         subject=subject,
-        lesson_name=lesson_name,
-        file_name=file_name
+        lesson_name=input_file.stem,
+        file_name=input_file.name,
     )
 
-    # Ensure target output directory exists
-    output_json_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_json_path, "w", encoding="utf-8") as f:
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(chunks, f, ensure_ascii=False, indent=2)
 
     return len(chunks)
 
 
 # ----------------------------------------------------------------------
-# 3. BATCH PROCESSING PIPELINE
+# 4. BATCH PROCESSING PIPELINE
 # ----------------------------------------------------------------------
-def batch_chunk_all_exercises(
-    input_base: str = "documents/md_documents/Exercise",
-    output_base: str = "documents/chunking_documents/Exercise"
+def batch_chunk_documents(
+    input_base: str,
+    output_base: str,
 ):
-    """
-    Recursively process all Markdown exercise files:
-    documents/md_documents/Exercise/{Subject}/*.md
-    
-    Output mirrored to:
-    documents/chunking_documents/Exercise/{Subject}/*.json
-    """
+    """Recursively scans the input directory and mirrors the chunked JSON files into the output directory."""
     input_path = Path(input_base)
+    output_path = Path(output_base)
+
     if not input_path.exists():
         print(f"[WARNING] Input path does not exist: '{input_base}'")
         return
 
-    md_files = [f for f in input_path.rglob("*.md") if not f.name.startswith("~$")]
+    md_files = [
+        f for f in input_path.rglob("*.md") if not f.name.startswith("~$")
+    ]
     if not md_files:
         print(f"[WARNING] No .md files found in '{input_base}'")
         return
 
-    print(f"🚀 Starting exercise chunking for {len(md_files)} files from '{input_base}' to '{output_base}'...\n")
+    print(
+        f"🚀 Starting chunking pipeline for {len(md_files)} files: '{input_path}'"
+        f" -> '{output_path}'...\n"
+    )
 
-    total_chunks_created = 0
+    total_chunks = 0
     for md_file in md_files:
         rel_path = md_file.relative_to(input_path)
-        output_json_path = Path(output_base) / rel_path.with_suffix(".json")
+        output_json_path = output_path / rel_path.with_suffix(".json")
+
+        subject = rel_path.parts[0] if len(rel_path.parts) > 1 else "General"
 
         try:
-            num_chunks = process_single_exercise_file(md_file, output_json_path)
-            total_chunks_created += num_chunks
-            print(f"  ✓ [{rel_path.parent}] {md_file.name} -> {output_json_path.name} ({num_chunks} chunks)")
+            num_chunks = process_single_file(
+                input_file=md_file,
+                output_file=output_json_path,
+                subject=subject,
+            )
+            total_chunks += num_chunks
+            print(
+                f"  ✓ [{subject}] {md_file.name} -> {output_json_path.name}"
+                f" ({num_chunks} chunks)"
+            )
         except Exception as err:
-            print(f"  ✗ Failed to chunk {md_file.name}: {err}")
+            print(f"  ✗ Error processing {md_file.name}: {err}")
 
-    print(f"\n✅ Exercise chunking completed! Created a total of {total_chunks_created} exercise chunks in '{output_base}'.")
+    print(
+        f"\n✅ Chunking completed! Total created: {total_chunks} chunks in"
+        f" '{output_base}'."
+    )
 
 
+# ----------------------------------------------------------------------
+# 5. CLI INTERFACE
+# ----------------------------------------------------------------------
 if __name__ == "__main__":
-    batch_chunk_all_exercises(
-        input_base="documents/md_documents/Exercise",
-        output_base="documents/chunking_documents/Exercise"
+    parser = argparse.ArgumentParser(
+        description=(
+            "CLI Tool to parse and split Markdown exercise documents into"
+            " structured JSON chunks."
+        )
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        default="documents/md_documents/Exercise",
+        help=(
+            "Path to source Markdown directory (Default:"
+            " documents/md_documents/Exercise)"
+        ),
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="documents/chunking_documents/Exercise",
+        help=(
+            "Path to destination JSON directory (Default:"
+            " documents/chunking_documents/Exercise)"
+        ),
+    )
+
+    args = parser.parse_args()
+
+    batch_chunk_documents(
+        input_base=args.input,
+        output_base=args.output,
     )
