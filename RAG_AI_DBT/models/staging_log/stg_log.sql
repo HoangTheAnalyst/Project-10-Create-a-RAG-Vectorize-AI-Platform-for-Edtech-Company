@@ -11,6 +11,9 @@ WITH source_data AS (
 renamed AS (
     SELECT
         CAST(query_id AS VARCHAR) AS query_id,
+        CAST(session_id AS VARCHAR) AS session_id,
+        CAST(conversation_id AS VARCHAR) AS conversation_id,
+        CAST(conversation_name AS VARCHAR) AS conversation_name,
         CAST(client_ip AS VARCHAR) AS client_ip,
         CAST(user_query AS VARCHAR) AS user_query,
         CAST(selected_subject AS VARCHAR) AS selected_subject,

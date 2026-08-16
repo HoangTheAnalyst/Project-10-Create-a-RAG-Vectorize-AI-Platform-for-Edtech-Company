@@ -32,9 +32,9 @@ clean_raw_chunk AS (
         CAST(ingested_at AS TIMESTAMP_NTZ) AS ingested_at
     FROM raw_chunk
     WHERE chunk_id IS NOT NULL
-    AND lesson_name != section_title
+    AND TRIM(lesson_name) != TRIM(section_title)
     AND chunk_vector IS NOT NULL
-
+    AND TRIM(section_title) != 'Introduction'
 )
 
 SELECT * FROM clean_raw_chunk

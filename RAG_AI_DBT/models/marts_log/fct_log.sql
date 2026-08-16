@@ -8,6 +8,9 @@
 WITH stg_log AS (
     SELECT
         query_id,
+        session_id,
+        conversation_id,
+        conversation_name,
         client_ip,
         user_query,
         selected_subject,
@@ -29,6 +32,8 @@ add_metric AS (
     SELECT
         MD5(query_id) AS query_sk,
         MD5(client_ip) AS hashed_client_ip,
+        MD5(session_id) AS session_sk,
+        MD5(conversation_id) AS conversation_sk,
 
         MD5(CONCAT_WS('||', selected_subject, selected_lesson)) AS lesson_sk,
         selected_subject,
