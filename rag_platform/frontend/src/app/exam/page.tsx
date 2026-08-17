@@ -4,6 +4,8 @@ import Sidebar from "@/components/Sidebar";
 import QuestionCard from "@/components/QuestionCard";
 import { Play, RotateCcw, Award, BookOpen, Layers, Hash, ChevronDown, Check } from "lucide-react";
 
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 const STORAGE_KEY_EXAM = "edugenius_active_exam_state";
 
 export default function ExamPage() {
@@ -50,7 +52,7 @@ export default function ExamPage() {
       }
     }
 
-    fetch("http://localhost:8000/api/metadata")
+    fetch(`${API_BASE}/api/metadata`)
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => {
         setMetadata(data);
@@ -100,7 +102,7 @@ export default function ExamPage() {
     setIsSubmitted(false);
     setUserAnswers({});
     try {
-      const res = await fetch("http://localhost:8000/api/exam", {
+      const res = await fetch(`${API_BASE}/api/exam`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject, lesson, limit }),

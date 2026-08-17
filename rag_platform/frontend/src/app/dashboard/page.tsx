@@ -21,6 +21,8 @@ import {
   XAxis, YAxis, Tooltip, CartesianGrid, Legend
 } from "recharts";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+
 export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [rawData, setRawData] = useState<any>(null);
@@ -58,13 +60,13 @@ export default function DashboardPage() {
     setIsMounted(true);
 
     // 1. Fetch aggregated telemetry & Marts table records
-    fetch("http://localhost:8000/api/dashboard")
+    fetch(`${API_BASE}/api/dashboard`)
       .then((res) => (res.ok ? res.json() : {}))
       .then((d) => setRawData(d))
       .catch((err) => console.warn("Failed to fetch dashboard data:", err));
 
     // 2. Fetch metadata for slicers
-    fetch("http://localhost:8000/api/metadata")
+    fetch(`${API_BASE}/api/metadata`)
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => setMetadata(data))
       .catch((err) => console.warn("Failed to fetch metadata:", err));

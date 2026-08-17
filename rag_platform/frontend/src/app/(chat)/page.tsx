@@ -18,7 +18,7 @@ interface Conversation {
   subject: string;
   lesson: string;
 }
-
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 const STORAGE_KEY_CONVS = "edugenius_active_conversations";
 const STORAGE_KEY_ACTIVE_ID = "edugenius_active_conv_id";
 
@@ -75,7 +75,7 @@ export default function ChatPage() {
       }
     }
 
-    fetch("http://localhost:8000/api/metadata")
+    fetch(`${API_BASE}/api/metadata`)
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => setMetadata(data))
       .catch((err) => console.warn("Failed to fetch filter metadata:", err));
@@ -182,7 +182,7 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8000/api/chat", {
+      const res = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
