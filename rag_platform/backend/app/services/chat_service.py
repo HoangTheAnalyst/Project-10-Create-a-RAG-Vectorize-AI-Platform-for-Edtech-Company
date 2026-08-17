@@ -5,49 +5,56 @@ from app.config import embed_model, genai_client, get_snowflake_conn
 
 
 def fetch_filter_metadata():
-    """Retrieve distinct subjects and lesson hierarchy from the dimension table."""
-    conn = get_snowflake_conn()
-    cur = conn.cursor()
-    try:
-        cur.execute(
-            "SELECT DISTINCT subject, lesson_name FROM MARTS.DIM_LESSON ORDER BY"
-            " subject, lesson_name;"
-        )
-        rows = cur.fetchall()
-        metadata = {}
-        for subj, lesson in rows:
-            if subj and lesson:
-                metadata.setdefault(subj, []).append(lesson)
-        return metadata
-    finally:
-        cur.close()
-        conn.close()
+  """Retrieve distinct subjects and lesson hierarchy from the dimension table."""
+  conn = get_snowflake_conn()
+  cur = conn.cursor()
+  try:
+    cur.execute(
+        "SELECT DISTINCT subject, lesson_name FROM MARTS.DIM_LESSON ORDER BY"
+        " subject, lesson_name;"
+    )
+    rows = cur.fetchall()
+    metadata = {}
+    for subj, lesson in rows:
+      if subj and lesson:
+        metadata.setdefault(subj, []).append(lesson)
+    return metadata
+  finally:
+    cur.close()
+    conn.close()
 
 
 def retrieve_chunks(
     query_text: str, subject: str, lesson_name: str, min_similarity: float
 ):
-    """Encode query text and perform cosine similarity search on vector chunks in Snowflake."""
-    query_vector = embed_model.encode(query_text).tolist()
-    query_vector_json = json.dumps(query_vector)
+  """Encode query text and perform cosine similarity search on vector chunks in Snowflake."""
+  raw_embedding = embed_model.encode(query_text)
 
-    conn = get_snowflake_conn()
-    cur = conn.cursor()
-    try:
-        conditions = []
-        params = [query_vector_json]
+  # Xử lý an toàn: nếu trả về numpy array thì tolist(), nếu là list sẵn thì giữ nguyên
+  query_vector = (
+      raw_embedding.tolist()
+      if hasattr(raw_embedding, "tolist")
+      else raw_embedding
+  )
+  query_vector_json = json.dumps(query_vector)
 
-        if subject != "All":
-            conditions.append("f.subject = %s")
-            params.append(subject)
-        if lesson_name != "All":
-            conditions.append("d.lesson_name = %s")
-            params.append(lesson_name)
+  conn = get_snowflake_conn()
+  cur = conn.cursor()
+  try:
+    conditions = []
+    params = [query_vector_json]
 
-        params.append(float(min_similarity))
-        where_clause = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    if subject != "All":
+      conditions.append("f.subject = %s")
+      params.append(subject)
+    if lesson_name != "All":
+      conditions.append("d.lesson_name = %s")
+      params.append(lesson_name)
 
-        sql = f"""
+    params.append(float(min_similarity))
+    where_clause = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+
+    sql = f"""
             WITH scored_chunks AS (
                 SELECT 
                     f.subject,
@@ -69,11 +76,11 @@ def retrieve_chunks(
             ORDER BY similarity_score DESC
             LIMIT 15;
             """
-        cur.execute(sql, params)
-        return cur.fetchall()
-    finally:
-        cur.close()
-        conn.close()
+    cur.execute(sql, params)
+    return cur.fetchall()
+  finally:
+    cur.close()
+    conn.close()
 
 
 def log_query_to_snowflake(
@@ -90,60 +97,61 @@ def log_query_to_snowflake(
     response: str,
     latency_sec: float,
 ):
-    """Insert query telemetry and model latency metrics into Snowflake RAW.QUERY_LOGS."""
-    conn = get_snowflake_conn()
-    cur = conn.cursor()
-    try:
-        insert_sql = """
+  """Insert query telemetry and model latency metrics into Snowflake RAW.QUERY_LOGS."""
+  conn = get_snowflake_conn()
+  cur = conn.cursor()
+  try:
+    insert_sql = """
             INSERT INTO RAW.QUERY_LOGS (
                 session_id, conversation_id, conversation_name, client_ip, 
                 user_query, selected_subject, selected_lesson, similarity_threshold, 
                 chunks_retrieved, top_similarity_score, ai_response, latency_seconds
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             """
-        cur.execute(
-            insert_sql,
-            (
-                str(session_id),
-                str(conv_id),
-                str(conv_name),
-                str(client_ip),
-                str(query),
-                str(subject),
-                str(lesson),
-                float(threshold),
-                int(retrieved_count),
-                float(top_score),
-                str(response),
-                float(latency_sec),
-            ),
-        )
-        conn.commit()
-    finally:
-        cur.close()
-        conn.close()
+    cur.execute(
+        insert_sql,
+        (
+            str(session_id),
+            str(conv_id),
+            str(conv_name),
+            str(client_ip),
+            str(query),
+            str(subject),
+            str(lesson),
+            float(threshold),
+            int(retrieved_count),
+            float(top_score),
+            str(response),
+            float(latency_sec),
+        ),
+    )
+    conn.commit()
+  finally:
+    cur.close()
+    conn.close()
 
 
 def generate_llm_response(query: str, chunks: list, history: list):
-    """Synthesize final response via Gemini using contextual retrieved chunks and chat history."""
-    if not chunks:
-        return "💡 Thầy chưa tìm thấy tài liệu liên quan. Các em hãy thử câu hỏi khác!"
+  """Synthesize final response via Gemini using contextual retrieved chunks and chat history."""
+  if not chunks:
+    return "💡 Thầy chưa tìm thấy tài liệu liên quan. Các em hãy thử câu hỏi khác!"
 
-    # Format retrieved document context
-    context_str = "\n\n---\n\n".join([
-        f"[Document {idx+1} | Subject: {c[0]} | Lesson: {c[1]} | Section: {c[2]} | Score: {c[5]:.3f}]\n{c[3]}"
-        for idx, c in enumerate(chunks)
-    ])
+  # Format retrieved document context
+  context_str = "\n\n---\n\n".join([
+      f"[Document {idx+1} | Subject: {c[0]} | Lesson: {c[1]} | Section: {c[2]} |"
+      f" Score: {c[5]:.3f}]\n{c[3]}"
+      for idx, c in enumerate(chunks)
+  ])
 
-    # Preserve sliding window of conversation history
-    recent_turns = history[-4:] if len(history) > 4 else history
-    history_str = ""
-    if recent_turns:
-        history_str = "PREVIOUS CONVERSATION HISTORY:\n" + "\n".join(
-            [f"- {m['role'].upper()}: {m['content']}" for m in recent_turns]
-        )
+  # Preserve sliding window of conversation history
+  recent_turns = history[-4:] if len(history) > 4 else history
+  history_str = ""
+  if recent_turns:
+    history_str = "PREVIOUS CONVERSATION HISTORY:\n" + "\n".join(
+        [f"- {m['role'].upper()}: {m['content']}" for m in recent_turns]
+    )
 
-    prompt = f"""Bạn là một Giáo viên / Giảng viên chuyên nghiệp, tận tâm và giàu kinh nghiệm sư phạm. 
+  prompt = f"""Bạn là một Giáo viên / Giảng viên chuyên nghiệp, tận tâm và giàu kinh nghiệm sư phạm. 
 Nhiệm vụ của bạn là giải đáp thắc mắc, giảng giải kiến thức hoặc biên soạn bài tập ôn luyện chuẩn xác dựa trên tài liệu được cung cấp.
 
 {history_str}
@@ -169,7 +177,7 @@ QUY TẮC ĐỊNH DẠNG & TRÌNH BÀY (BẮT BUỘC TUÂN THỦ):
     ( Nhớ là chỉ được phép đưa ra đáp án cuối cùng khi học sinh hỏi, không được tự ý đưa ra đáp án trong phần giải thích lý thuyết hoặc bài tập.)
 Hãy thực hiện câu trả lời ngay bên dưới:
 """
-    response = genai_client.models.generate_content(
-        model="gemini-3.1-flash-lite", contents=prompt
-    )
-    return response.text
+  response = genai_client.models.generate_content(
+      model="gemini-2.5-flash", contents=prompt
+  )
+  return response.text
