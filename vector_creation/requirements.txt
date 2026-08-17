@@ -1,0 +1,4 @@
+python-docx
+python-dotenv
+sentence-transformers
+snowflake-connector-python

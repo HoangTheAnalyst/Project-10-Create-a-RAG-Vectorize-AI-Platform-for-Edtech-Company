@@ -1,4 +1,55 @@
+# ==========================================
+# 1. PYTHON VIRTUAL ENVIRONMENT & CACHE
+# ==========================================
 .venv/
+venv/
+env/
+ENV/
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+
+# ==========================================
+# 2. NODE.JS & NEXT.JS BUILD 
+# ==========================================
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+build/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ==========================================
+# 3. SECURITY & SENSITIVE KEYS
+# ==========================================
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ==========================================
+# 4. DBT & DATA PLATFORM ARTIFACTS
+# ==========================================
+target/
+**/target/
+dbt_packages/
+**/dbt_packages/
+logs/
+*.log
+
+# ==========================================
+# 5. IDE, OS & TEMP FILES
+# ==========================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

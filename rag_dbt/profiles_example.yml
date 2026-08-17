@@ -1,0 +1,15 @@
+# Use an account with ACCOUNTADMIN role or any account having write access to 
+# RAG_AI_PLATFORM.(STAGING/MARTS/STAGING_LOG/MARTS_LOG) schemas and SELECT to RAW schema
+
+rag_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      threads: 16
+      account: YOUR_ACCOUNT
+      user: USERNAME
+      database: RAG_AI_PLATFORM
+      warehouse: SNOWFLAKE_LEARNING_WH
+      schema: RAW
+      password: PASSWORD
