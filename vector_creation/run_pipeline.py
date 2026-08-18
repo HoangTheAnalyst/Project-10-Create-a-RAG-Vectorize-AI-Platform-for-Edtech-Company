@@ -173,8 +173,8 @@ if __name__ == "__main__":
         "-m",
         "--model",
         type=str,
-        default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-        help="SentenceTransformer model identifier",
+        default="gemini-embedding-001",
+        help="Gemini model identifier",
     )
     parser.add_argument(
         "--skip-snowflake",

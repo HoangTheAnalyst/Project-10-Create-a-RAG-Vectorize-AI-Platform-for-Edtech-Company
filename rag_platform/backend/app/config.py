@@ -5,7 +5,7 @@ from google import genai
 from google.genai import types
 import snowflake.connector
 
-# Resolve absolute paths to load .env configuration
+# Load environment variables from .env files in the backend or root directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir = os.path.dirname(current_dir)
 root_dir = os.path.dirname(backend_dir)
@@ -21,46 +21,53 @@ else:
     load_dotenv()
 
 # Initialize Google GenAI client
-genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+genai_client = genai.Client()
 
 
-# Wrapper class mimicking SentenceTransformer interface for backward compatibility
 class GeminiEmbedder:
-    """Lightweight API-based embedder using Gemini text-embedding-004 (384 dimensions)."""
+    """Lightweight API-based embedder compatible with Google AI Studio SDK standards."""
 
-    def __init__(self, output_dimensionality: int = 384):
+    def __init__(self, output_dimensionality: int = 1024):
         self.model = "gemini-embedding-001"
         self.output_dimensionality = output_dimensionality
 
     def encode(
         self,
         texts: Union[str, List[str]],
+        task_type: str = "RETRIEVAL_QUERY",
         show_progress_bar: bool = False,
         **kwargs,
-    ) -> List[List[float]]:
-        """Compute 384-dimensional dense vector embeddings via Gemini API."""
-        if isinstance(texts, str):
-            texts = [texts]
+    ) -> Union[List[float], List[List[float]]]:
+        """Compute dense embeddings with task-specific optimization.
+        
+        """
+        is_single_text = isinstance(texts, str)
+        content_list = [texts] if is_single_text else texts
 
-        if not texts:
-            return []
+        if not content_list:
+            return [] if is_single_text else []
 
         response = genai_client.models.embed_content(
             model=self.model,
-            contents=texts,
+            contents=content_list,
             config=types.EmbedContentConfig(
-                output_dimensionality=self.output_dimensionality
+                task_type=task_type,
+                output_dimensionality=self.output_dimensionality,
             ),
         )
 
-        return [emb.values for emb in response.embeddings]
+        vectors = [[float(val) for val in emb.values] for emb in response.embeddings]
+
+        if is_single_text:
+            return vectors[0]
+
+        return vectors
 
 
-# Export embed_model instance with identical .encode() interface
-embed_model = GeminiEmbedder(output_dimensionality=384)
+# Initialize a global embedder instance with 1024 dimensions for retrieval tasks
+embed_model = GeminiEmbedder(output_dimensionality=1024)
 
 
-# Connect to Snowflake (Least-privilege: SELECT on MARTS and INSERT on QUERY_LOGS)
 def get_snowflake_conn():
     """Establish and return an active Snowflake database connection."""
     user = os.getenv("SNOWFLAKE_USER")

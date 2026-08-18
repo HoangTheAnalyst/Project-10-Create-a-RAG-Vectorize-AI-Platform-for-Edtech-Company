@@ -28,7 +28,7 @@ def retrieve_chunks(
     query_text: str, subject: str, lesson_name: str, min_similarity: float
 ):
     """Encode query text and perform cosine similarity search on vector chunks in Snowflake."""
-    query_vector = embed_model.encode(query_text).tolist()
+    query_vector = embed_model.encode(query_text)
     query_vector_json = json.dumps(query_vector)
 
     conn = get_snowflake_conn()

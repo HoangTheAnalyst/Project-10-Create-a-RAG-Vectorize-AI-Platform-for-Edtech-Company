@@ -1,17 +1,32 @@
 import argparse
 import json
+import os
+import time
 from pathlib import Path
-from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
 # ----------------------------------------------------------------------
 # 1. HELPER / MODEL INITIALIZATION
 # ----------------------------------------------------------------------
-def load_embedding_model(
-    model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-) -> SentenceTransformer:
-    """Load and return the sentence transformer embedding model."""
-    print(f"⏳ Loading embedding model: '{model_name}'...")
-    return SentenceTransformer(model_name)
+def load_embedding_model():
+    """Load environment variables and return Google GenAI client."""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(current_dir)
+    
+    env_local = os.path.join(current_dir, ".env")
+    env_root = os.path.join(root_dir, ".env")
+    
+    if os.path.exists(env_local):
+        load_dotenv(dotenv_path=env_local)
+    elif os.path.exists(env_root):
+        load_dotenv(dotenv_path=env_root)
+    else:
+        load_dotenv()
+
+    print("⏳ Initializing Google GenAI Client...")
+    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 # ----------------------------------------------------------------------
@@ -20,26 +35,40 @@ def load_embedding_model(
 def process_file_embedding(
     input_json_path: Path,
     output_json_path: Path,
-    embed_model: SentenceTransformer,
+    client: genai.Client,
+    model_name: str = "gemini-embedding-001",
+    output_dim: int = 1024,
+    batch_size: int = 50,
 ) -> int:
-    """Read a JSON chunk file, compute embeddings, and save the updated chunks."""
+    """Read a JSON chunk file, compute embeddings via Gemini API, and save the updated chunks."""
     with open(input_json_path, "r", encoding="utf-8") as f:
         chunks = json.load(f)
 
     if not chunks:
         return 0
 
-    # Prepare embedding text: combine section_title and content
     texts = [
         f"{c.get('section_title', '')}: {c.get('content', '')}" for c in chunks
     ]
 
-    # Generate dense vectors (384 dimensions)
-    vectors = embed_model.encode(texts, show_progress_bar=False)
+    all_vectors = []
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i : i + batch_size]
+        response = client.models.embed_content(
+            model=model_name,
+            contents=batch,
+            config=types.EmbedContentConfig(
+                task_type="RETRIEVAL_DOCUMENT",
+                output_dimensionality=output_dim,
+            ),
+        )
+        for emb in response.embeddings:
+            all_vectors.append([float(val) for val in emb.values])
+        
+        time.sleep(0.2)
 
-    # Attach vectors to chunks
-    for chunk, vec in zip(chunks, vectors):
-        chunk["chunk_vector"] = vec.tolist()
+    for chunk, vec in zip(chunks, all_vectors):
+        chunk["chunk_vector"] = vec
 
     output_json_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_json_path, "w", encoding="utf-8") as f:
@@ -54,7 +83,8 @@ def process_file_embedding(
 def batch_embed_documents(
     input_base: str,
     output_base: str,
-    model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    model_name: str = "gemini-embedding-001",
+    output_dim: int = 1024,
 ):
     """Recursively scan input directory, generate embeddings, and mirror output structure."""
     input_path = Path(input_base)
@@ -71,7 +101,7 @@ def batch_embed_documents(
         print(f"[WARNING] No .json files found in '{input_base}'")
         return
 
-    embed_model = load_embedding_model(model_name)
+    client = load_embedding_model()
 
     print(
         f"🚀 Vectorizing {len(json_files)} files: '{input_path}' ->"
@@ -84,7 +114,13 @@ def batch_embed_documents(
         out_path = output_path / rel_path
 
         try:
-            num_chunks = process_file_embedding(jf, out_path, embed_model)
+            num_chunks = process_file_embedding(
+                input_json_path=jf,
+                output_json_path=out_path,
+                client=client,
+                model_name=model_name,
+                output_dim=output_dim,
+            )
             total_embedded += num_chunks
             print(f"  ✓ [{rel_path.parent}] {jf.name} ({num_chunks} chunks)")
         except Exception as err:
@@ -101,7 +137,7 @@ def batch_embed_documents(
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="CLI Tool to generate vector embeddings for chunked JSON documents."
+        description="CLI Tool to generate vector embeddings for chunked JSON documents via Gemini API."
     )
     parser.add_argument(
         "-i",
@@ -121,8 +157,15 @@ if __name__ == "__main__":
         "-m",
         "--model",
         type=str,
-        default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-        help="HuggingFace model identifier for sentence embeddings (Default: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)",
+        default="gemini-embedding-001",
+        help="Gemini embedding model identifier (Default: gemini-embedding-001)",
+    )
+    parser.add_argument(
+        "-d",
+        "--dim",
+        type=int,
+        default=1024,
+        help="Output dimensionality for embedding vectors (Default: 1024)",
     )
 
     args = parser.parse_args()
@@ -131,4 +174,5 @@ if __name__ == "__main__":
         input_base=args.input,
         output_base=args.output,
         model_name=args.model,
+        output_dim=args.dim,
     )
