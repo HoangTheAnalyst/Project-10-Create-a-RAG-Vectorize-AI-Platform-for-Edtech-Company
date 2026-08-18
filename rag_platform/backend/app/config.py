@@ -65,7 +65,7 @@ class GeminiEmbedder:
 
 
 # Initialize a global embedder instance with 1024 dimensions for retrieval tasks
-embed_model = GeminiEmbedder(output_dimensionality=1024)
+embed_model = GeminiEmbedder(output_dimensionality=384)
 
 
 def get_snowflake_conn():
