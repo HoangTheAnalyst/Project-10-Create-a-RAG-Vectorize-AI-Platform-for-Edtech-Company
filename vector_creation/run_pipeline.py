@@ -173,8 +173,8 @@ if __name__ == "__main__":
         "-m",
         "--model",
         type=str,
-        default="gemini-embedding-001",
-        help="Gemini model identifier",
+        default="embed-multilingual-v3.0",
+        help="Cohere model identifier",
     )
     parser.add_argument(
         "--skip-snowflake",

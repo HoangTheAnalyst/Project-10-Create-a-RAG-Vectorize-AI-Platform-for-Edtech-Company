@@ -1,7 +1,5 @@
 import json
-import os
-import time
-from app.config import embed_model, genai_client, get_snowflake_conn
+from app.config import embed_model, grok_client, get_snowflake_conn
 
 
 def fetch_filter_metadata():
@@ -34,8 +32,8 @@ def retrieve_chunks(
     conn = get_snowflake_conn()
     cur = conn.cursor()
     try:
-        conditions = []
         params = [query_vector_json]
+        conditions = []
 
         if subject != "All":
             conditions.append("f.subject = %s")
@@ -56,8 +54,8 @@ def retrieve_chunks(
                     f.content,
                     f.chunk_type,
                     VECTOR_COSINE_SIMILARITY(
-                        f.chunk_vector::VECTOR(FLOAT, 384),
-                        PARSE_JSON(%s)::VECTOR(FLOAT, 384)
+                        f.chunk_vector::VECTOR(FLOAT, 1024),
+                        PARSE_JSON(%s)::VECTOR(FLOAT, 1024)
                     ) AS similarity_score
                 FROM MARTS.FCT_CHUNKS f
                 JOIN MARTS.DIM_LESSON d ON f.lesson_sk = d.lesson_sk
@@ -124,52 +122,53 @@ def log_query_to_snowflake(
         conn.close()
 
 
-def generate_llm_response(query: str, chunks: list, history: list):
-    """Synthesize final response via Gemini using contextual retrieved chunks and chat history."""
+def generate_llm_response(query: str, chunks: list, history: list) -> str:
+    """Synthesize final response via Groq using contextual retrieved chunks and chat history."""
     if not chunks:
         return "💡 Thầy chưa tìm thấy tài liệu liên quan. Các em hãy thử câu hỏi khác!"
 
-    # Format retrieved document context
     context_str = "\n\n---\n\n".join([
         f"[Document {idx+1} | Subject: {c[0]} | Lesson: {c[1]} | Section: {c[2]} | Score: {c[5]:.3f}]\n{c[3]}"
         for idx, c in enumerate(chunks)
     ])
 
-    # Preserve sliding window of conversation history
-    recent_turns = history[-4:] if len(history) > 4 else history
-    history_str = ""
-    if recent_turns:
-        history_str = "PREVIOUS CONVERSATION HISTORY:\n" + "\n".join(
-            [f"- {m['role'].upper()}: {m['content']}" for m in recent_turns]
-        )
-
-    prompt = f"""Bạn là một Giáo viên / Giảng viên chuyên nghiệp, tận tâm và giàu kinh nghiệm sư phạm. 
+    system_prompt = """Bạn là một Giáo viên / Giảng viên chuyên nghiệp, tận tâm và giàu kinh nghiệm sư phạm. 
 Nhiệm vụ của bạn là giải đáp thắc mắc, giảng giải kiến thức hoặc biên soạn bài tập ôn luyện chuẩn xác dựa trên tài liệu được cung cấp.
-
-{history_str}
-
-TÀI LIỆU TRUY XUẤT ĐƯỢC:
-{context_str}
-
-CÂU HỎI / YÊU CẦU CỦA HỌC SINH:
-{query}
 
 QUY TẮC ĐỊNH DẠNG & TRÌNH BÀY (BẮT BUỘC TUÂN THỦ):
    - Ngôn từ chuẩn mực, gãy gọn, truyền cảm hứng và dễ hiểu.
    - Khi giải thích lý thuyết: Chia các ý chính thành các đầu mục (Bullet points) hoặc bảng biểu so sánh rõ ràng.
-   - Khi giải thích bài tập: Trình bày từng bước giải thích chi tiết, nhớ xuống dòng hợp lý từng câu A, B , C , D phải xuống dòng chuẩn chỉnh, nhưng chỉ khi học sinh hỏi thì mới làm câu hỏi hoặc đưa ra đáp án cuối cùng
-   - Khi gặp câu hỏi không liên quan tới kiến thức đã được cung cấp: Hãy lịch sự thông báo rằng "Thầy không thể trả lời câu hỏi trên. Các em vui lòng hỏi câu liên quan hơn". 
-   Câu này có hiệu lực đè lên cả {history_str} và {context_str} và là phán quyết cuối cùng nếu học sinh hỏi các câu hỏi không liên quan hoặc có xu hướng phá hoại website.
+   - Khi giải thích bài tập: Trình bày từng bước giải thích chi tiết, nhớ xuống dòng hợp lý từng câu A, B, C, D phải xuống dòng chuẩn chỉnh, nhưng chỉ khi học sinh hỏi thì mới làm câu hỏi hoặc đưa ra đáp án cuối cùng.
+   - Khi gặp câu hỏi không liên quan tới kiến thức đã được cung cấp: Hãy lịch sự thông báo rằng "Thầy không thể trả lời câu hỏi trên. Các em vui lòng hỏi câu liên quan hơn".
    (Ví dụ như với 1 câu hỏi:
     **Câu 1: Đặc điểm nổi bật nào về dân số Việt Nam tạo điều kiện cho đất nước có lực lượng lao động dồi dào?**
     * **A.** Dân số già, mật độ thấp.
     * **B.** Dân số trẻ - vàng, mật độ cao.
     * **C.** Tốc độ tăng trưởng dân số nhanh, phân bố đều.
     * **D.** Tỉ lệ dân thành thị chiếm đa số.
-    ( Nhớ là chỉ được phép đưa ra đáp án cuối cùng khi học sinh hỏi, không được tự ý đưa ra đáp án trong phần giải thích lý thuyết hoặc bài tập.)
-Hãy thực hiện câu trả lời ngay bên dưới:
-"""
-    response = genai_client.models.generate_content(
-        model="gemini-3.1-flash-lite", contents=prompt
+    Nhớ là chỉ được phép đưa ra đáp án cuối cùng khi học sinh hỏi, không được tự ý đưa ra đáp án trong phần giải thích lý thuyết hoặc bài tập.)"""
+
+    messages = [{"role": "system", "content": system_prompt}]
+
+    for turn in history[-4:]:
+        role = "assistant" if turn["role"].lower() in ["assistant", "model"] else "user"
+        messages.append({"role": role, "content": turn["content"]})
+
+    user_prompt = f"""TÀI LIỆU TRUY XUẤT ĐƯỢC:
+{context_str}
+
+CÂU HỎI / YÊU CẦU CỦA HỌC SINH:
+{query}
+
+Hãy thực hiện câu trả lời ngay bên dưới:"""
+
+    messages.append({"role": "user", "content": user_prompt})
+
+    completion = grok_client.chat.completions.create(
+        model="openai/gpt-oss-120b",
+        messages=messages,
+        temperature=0.3,
+        max_tokens=4096,
     )
-    return response.text
+
+    return completion.choices[0].message.content
