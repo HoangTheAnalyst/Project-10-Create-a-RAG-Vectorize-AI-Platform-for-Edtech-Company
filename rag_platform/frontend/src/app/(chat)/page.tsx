@@ -2,9 +2,11 @@
 import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
 import Sidebar from "@/components/Sidebar";
 import { Send, Bot, User, BookOpen, Layers, ChevronDown, Check } from "lucide-react";
 import Image from "next/image";
+import rehypeRaw from "rehype-raw";
 
 interface Message {
   role: string;
@@ -297,7 +299,27 @@ export default function ChatPage() {
                     }`}
                   >
                     <ReactMarkdown
-                      remarkPlugins={[remarkBreaks]}
+                      remarkPlugins={[remarkBreaks, remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                      components={{
+                        table: ({ node, ...props }) => (
+                          <div className="my-3 overflow-x-auto rounded-xl border border-[#ece3d2] shadow-xs">
+                            <table className="min-w-full divide-y divide-[#ece3d2] text-left text-xs" {...props} />
+                          </div>
+                        ),
+                        thead: ({ node, ...props }) => (
+                          <thead className="bg-[#fbf7ee] text-slate-700 font-semibold" {...props} />
+                        ),
+                        th: ({ node, ...props }) => (
+                          <th className="px-3.5 py-2.5 text-slate-800 border-b border-[#ece3d2]" {...props} />
+                        ),
+                        td: ({ node, ...props }) => (
+                          <td className="px-3.5 py-2 text-slate-600 border-b border-[#f4ede0] last:border-b-0" {...props} />
+                        ),
+                        tr: ({ node, ...props }) => (
+                          <tr className="hover:bg-[#faf6ee]/60 transition-colors" {...props} />
+                        ),
+                      }}
                       className="prose prose-slate max-w-none text-sm leading-relaxed"
                     >
                       {m.content}

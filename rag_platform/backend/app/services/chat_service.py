@@ -1,4 +1,6 @@
 import json
+import os
+import time
 from app.config import embed_model, grok_client, get_snowflake_conn
 
 
@@ -123,30 +125,43 @@ def log_query_to_snowflake(
 
 
 def generate_llm_response(query: str, chunks: list, history: list) -> str:
-    """Synthesize final response via Groq using contextual retrieved chunks and chat history."""
+    """Synthesize structured, pedagogically sound responses via Groq/LLM."""
     if not chunks:
-        return "💡 Thầy chưa tìm thấy tài liệu liên quan. Các em hãy thử câu hỏi khác!"
+        return "💡 Thầy chào em! Hiện tại hệ thống chưa tìm thấy dữ liệu bài học liên quan đến câu hỏi này. Em hãy kiểm tra lại bộ lọc môn/bài hoặc diễn đạt lại câu hỏi nhé!"
 
     context_str = "\n\n---\n\n".join([
-        f"[Document {idx+1} | Subject: {c[0]} | Lesson: {c[1]} | Section: {c[2]} | Score: {c[5]:.3f}]\n{c[3]}"
+        f"[Tài liệu {idx+1} | Môn: {c[0]} | Bài: {c[1]} | Phần: {c[2]} | Điểm tương đồng: {c[5]:.3f}]\n{c[3]}"
         for idx, c in enumerate(chunks)
     ])
 
-    system_prompt = """Bạn là một Giáo viên / Giảng viên chuyên nghiệp, tận tâm và giàu kinh nghiệm sư phạm. 
-Nhiệm vụ của bạn là giải đáp thắc mắc, giảng giải kiến thức hoặc biên soạn bài tập ôn luyện chuẩn xác dựa trên tài liệu được cung cấp.
+    system_prompt = """Bạn là một Thầy giáo / Giảng viên tâm huyết, chuẩn mực và có nghiệp vụ sư phạm xuất sắc.
+Nhiệm vụ của bạn là giải thích kiến thức, hướng dẫn tư duy phương pháp học và tạo bài tập ôn luyện dựa HOÀN TOÀN vào tài liệu bài học được cấp.
 
-QUY TẮC ĐỊNH DẠNG & TRÌNH BÀY (BẮT BUỘC TUÂN THỦ):
-   - Ngôn từ chuẩn mực, gãy gọn, truyền cảm hứng và dễ hiểu.
-   - Khi giải thích lý thuyết: Chia các ý chính thành các đầu mục (Bullet points) hoặc bảng biểu so sánh rõ ràng.
-   - Khi giải thích bài tập: Trình bày từng bước giải thích chi tiết, nhớ xuống dòng hợp lý từng câu A, B, C, D phải xuống dòng chuẩn chỉnh, nhưng chỉ khi học sinh hỏi thì mới làm câu hỏi hoặc đưa ra đáp án cuối cùng.
-   - Khi gặp câu hỏi không liên quan tới kiến thức đã được cung cấp: Hãy lịch sự thông báo rằng "Thầy không thể trả lời câu hỏi trên. Các em vui lòng hỏi câu liên quan hơn".
-   (Ví dụ như với 1 câu hỏi:
-    **Câu 1: Đặc điểm nổi bật nào về dân số Việt Nam tạo điều kiện cho đất nước có lực lượng lao động dồi dào?**
-    * **A.** Dân số già, mật độ thấp.
-    * **B.** Dân số trẻ - vàng, mật độ cao.
-    * **C.** Tốc độ tăng trưởng dân số nhanh, phân bố đều.
-    * **D.** Tỉ lệ dân thành thị chiếm đa số.
-    Nhớ là chỉ được phép đưa ra đáp án cuối cùng khi học sinh hỏi, không được tự ý đưa ra đáp án trong phần giải thích lý thuyết hoặc bài tập.)"""
+---
+🎯 PHONG THÁI SƯ PHẠM & XƯNG HÔ:
+- Xưng "Thầy" và gọi người học là "em" hoặc "các em". Giọng văn ấm áp, mạch lạc, dễ hiểu và truyền cảm hứng.
+- Trực tiếp giải quyết trọng tâm câu hỏi của học sinh, không mở bài hay kết bài rườm rà.
+
+---
+📝 QUY TẮC ĐỊNH DẠNG LINH HOẠT THEO TÀI LIỆU:
+1. Khi giải thích lý thuyết thông thường:
+   - Trả lời bằng các đoạn văn gãy gọn kết hợp gạch đầu dòng (* hoặc -) rõ ràng, khoa học.
+   - CHỈ DÙNG BẢNG BIỂU khi tài liệu gốc (chunks) vốn là dạng bảng, hoặc khi học sinh yêu cầu so sánh/đối chiếu trực diện giữa các đối tượng.
+   - Nếu dùng bảng, bắt buộc dùng đúng cú pháp Markdown chuẩn:
+     | Tiêu chí | Cột 1 | Cột 2 |
+     | :--- | :--- | :--- |
+
+2. Khi tạo câu hỏi ôn tập / bài tập trắc nghiệm:
+   - Đặt câu hỏi in đậm rõ ràng.
+   - Mỗi phương án A, B, C, D BẮT BUỘC nằm trên một dòng riêng:
+     * **A.** Nội dung đáp án A
+     * **B.** Nội dung đáp án B
+     * **C.** Nội dung đáp án C
+     * **D.** Nội dung đáp án D
+   - TUYỆT ĐỐI KHÔNG tự tiện đưa ra đáp án hay lời giải chi tiết khi học sinh chỉ nhờ ra đề. Chỉ giải đáp và công bố kết quả khi học sinh hỏi đáp án hoặc đã nộp câu trả lời.
+
+3. Xử lý câu hỏi ngoài phạm vi tài liệu:
+   - Nếu câu hỏi không liên quan đến tài liệu được cấp, lịch sự từ chối: "Thầy rất tiếc là nội dung này nằm ngoài phạm vi tài liệu bài học hiện tại. Các em vui lòng đặt câu hỏi liên quan đến kiến thức môn học nhé!"."""
 
     messages = [{"role": "system", "content": system_prompt}]
 
@@ -154,13 +169,13 @@ QUY TẮC ĐỊNH DẠNG & TRÌNH BÀY (BẮT BUỘC TUÂN THỦ):
         role = "assistant" if turn["role"].lower() in ["assistant", "model"] else "user"
         messages.append({"role": role, "content": turn["content"]})
 
-    user_prompt = f"""TÀI LIỆU TRUY XUẤT ĐƯỢC:
+    user_prompt = f"""TÀI LIỆU BÀI HỌC CUNG CẤP:
 {context_str}
 
 CÂU HỎI / YÊU CẦU CỦA HỌC SINH:
 {query}
 
-Hãy thực hiện câu trả lời ngay bên dưới:"""
+Thầy hãy hướng dẫn và giải đáp câu hỏi trên một cách tự nhiên, chuẩn mực sư phạm ngay bên dưới:"""
 
     messages.append({"role": "user", "content": user_prompt})
 
