@@ -302,6 +302,15 @@ export default function ChatPage() {
                       remarkPlugins={[remarkBreaks, remarkGfm]}
                       rehypePlugins={[rehypeRaw]}
                       components={{
+                        ul: ({ node, ...props }) => (
+                          <ul className="list-disc pl-5 my-2 space-y-1 marker:text-amber-600" {...props} />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol className="list-decimal pl-5 my-2 space-y-1 marker:font-semibold marker:text-amber-700" {...props} />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li className="leading-relaxed pl-1" {...props} />
+                        ),
                         table: ({ node, ...props }) => (
                           <div className="my-3 overflow-x-auto rounded-xl border border-[#ece3d2] shadow-xs">
                             <table className="min-w-full divide-y divide-[#ece3d2] text-left text-xs" {...props} />
