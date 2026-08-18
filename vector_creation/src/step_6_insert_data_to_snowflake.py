@@ -5,6 +5,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import snowflake.connector
 
+# Resolve absolute paths to load .env configuration
 current_dir = Path(__file__).resolve().parent  
 module_dir = current_dir.parent              
 root_dir = module_dir.parent                 
