@@ -13,3 +13,4 @@ SELECT
     created_at
 FROM {{ source('raw_log_source', 'query_logs') }}
 WHERE chunks_retrieved = 0
+    AND created_at >= DATEADD(day, -3, CURRENT_TIMESTAMP())

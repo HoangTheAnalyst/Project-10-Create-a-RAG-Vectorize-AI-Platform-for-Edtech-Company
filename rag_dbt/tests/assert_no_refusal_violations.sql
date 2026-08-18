@@ -11,5 +11,6 @@ SELECT
     created_at
 FROM  {{ source('raw_log_source', 'query_logs') }}
 WHERE 
-    ai_response ILIKE '%Thầy không thể trả lời câu hỏi trên%'
-    OR user_query ILIKE '%Thầy không thể trả lời câu hỏi trên%'
+    (ai_response ILIKE '%Xin lỗi, thầy không thể trả lời câu hỏi này.%'
+    OR user_query ILIKE '%Xin lỗi, thầy không thể trả lời câu hỏi này.%')
+    AND created_at >= DATEADD(day, -3, CURRENT_TIMESTAMP())
