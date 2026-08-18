@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Sidebar from "@/components/Sidebar";
 import KpiCard from "@/components/KpiCard";
 import { 
@@ -17,6 +17,7 @@ import {
   Table as TableIcon
 } from "lucide-react";
 import {
+  ResponsiveContainer,
   LineChart, Line, BarChart, Bar, ScatterChart, Scatter,
   XAxis, YAxis, Tooltip, CartesianGrid, Legend
 } from "recharts";
@@ -32,34 +33,13 @@ export default function DashboardPage() {
 
   const [openSubjectMenu, setOpenSubjectMenu] = useState(false);
   const [openDateMenu, setOpenDateMenu] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  const chartBoxRef = useRef<HTMLDivElement>(null);
-  const [fixedChartWidth, setFixedChartWidth] = useState(520);
 
   const subjectRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLDivElement>(null);
 
-  // Recalculate dynamic width for responsive Recharts containers
-  const updateChartWidth = () => {
-    if (chartBoxRef.current) {
-      const width = chartBoxRef.current.clientWidth - 40;
-      if (width > 0) setFixedChartWidth(width);
-    }
-  };
-
-  const handleSidebarToggle = (collapsed: boolean) => {
-    setIsSidebarCollapsed(collapsed);
-    setTimeout(() => {
-      updateChartWidth();
-    }, 320);
-  };
-
-  // Fetch telemetry datasets and filter hierarchy on mount with Session Storage Caching
   useEffect(() => {
     setIsMounted(true);
 
-    // 1. Fetch aggregated telemetry & Marts table records
     const cachedDash = sessionStorage.getItem("cache_dashboard_data");
     if (cachedDash) {
       try {
@@ -79,7 +59,6 @@ export default function DashboardPage() {
         .catch((err) => console.warn("Failed to fetch dashboard data:", err));
     }
 
-    // 2. Fetch metadata for slicers
     const cachedMeta = sessionStorage.getItem("cache_metadata");
     if (cachedMeta) {
       try {
@@ -98,14 +77,8 @@ export default function DashboardPage() {
         })
         .catch((err) => console.warn("Failed to fetch metadata:", err));
     }
-
-    updateChartWidth();
-    const handleResize = () => updateChartWidth();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Close dropdown menus on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (subjectRef.current && !subjectRef.current.contains(event.target as Node)) {
@@ -119,7 +92,6 @@ export default function DashboardPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter subject distributions based on active slicer
   const filteredSubjectDist = useMemo(() => {
     if (!rawData?.subject_distribution) return [];
     if (selectedSubject === "All") return rawData.subject_distribution;
@@ -128,7 +100,6 @@ export default function DashboardPage() {
     );
   }, [rawData, selectedSubject]);
 
-  // Filter daily trends based on selected date range
   const filteredDailyTrends = useMemo(() => {
     if (!rawData?.daily_trends) return [];
     if (selectedDateRange === "All") return rawData.daily_trends;
@@ -155,7 +126,6 @@ export default function DashboardPage() {
     });
   }, [rawData, selectedDateRange]);
 
-  // Filter scatter plot points based on selected subject
   const filteredScatter = useMemo(() => {
     if (!rawData?.scatter_data) return [];
     if (selectedSubject === "All") return rawData.scatter_data;
@@ -164,7 +134,6 @@ export default function DashboardPage() {
     );
   }, [rawData, selectedSubject]);
 
-  // Filter Marts tabular records based on selected subject
   const filteredMartsTable = useMemo(() => {
     if (!rawData?.marts_table_data) return [];
     if (selectedSubject === "All") return rawData.marts_table_data;
@@ -173,7 +142,6 @@ export default function DashboardPage() {
     );
   }, [rawData, selectedSubject]);
 
-  // Recompute high-level KPI card metrics
   const { totalQueries, emptyRetrievals, emptyRate } = useMemo(() => {
     if (!rawData?.kpi) return { totalQueries: 0, emptyRetrievals: 0, emptyRate: "0" };
     const tQ = filteredSubjectDist.reduce((acc: number, cur: any) => acc + (cur.total_queries || 0), 0) || rawData.kpi.total_queries;
@@ -192,7 +160,7 @@ export default function DashboardPage() {
   if (!isMounted || !rawData?.kpi) {
     return (
       <div className="flex h-screen w-screen overflow-hidden bg-[#fdfbf7]">
-        <Sidebar collapsed={isSidebarCollapsed} onToggleCollapse={handleSidebarToggle} />
+        <Sidebar />
         <div className="flex-1 flex items-center justify-center text-slate-400 text-sm font-medium animate-pulse">
           Loading learning telemetry and performance metrics...
         </div>
@@ -202,30 +170,30 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#fdfbf7]">
-      <Sidebar collapsed={isSidebarCollapsed} onToggleCollapse={handleSidebarToggle} />
+      <Sidebar />
       
-      <div className="flex-1 overflow-y-auto min-w-0 px-8 py-10 space-y-8">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <div className="flex-1 overflow-y-auto min-w-0 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           
           {/* Header & Slicers Bar */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">📊 Daily Analytics Report</h1>
-              <p className="text-sm text-slate-500 mt-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">📊 Daily Analytics Report</h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 Live monitoring of chat interactions, vector retrieval similarity, and latency metrics.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Subject Slicer */}
-              <div className="relative min-w-[180px]" ref={subjectRef}>
+              <div className="relative flex-1 sm:flex-initial min-w-[150px] sm:min-w-[180px]" ref={subjectRef}>
                 <button
                   type="button"
                   onClick={() => {
                     setOpenSubjectMenu(!openSubjectMenu);
                     setOpenDateMenu(false);
                   }}
-                  className="w-full flex items-center justify-between gap-2 bg-white border border-[#ece3d2] hover:border-[#dfd3bc] px-3.5 py-2 rounded-xl text-xs text-slate-700 shadow-xs transition"
+                  className="w-full flex items-center justify-between gap-2 bg-white border border-[#ece3d2] hover:border-[#dfd3bc] px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs text-slate-700 shadow-xs transition"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <BookOpen className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
@@ -271,14 +239,14 @@ export default function DashboardPage() {
               </div>
 
               {/* Time Slicer */}
-              <div className="relative min-w-[160px]" ref={dateRef}>
+              <div className="relative flex-1 sm:flex-initial min-w-[140px] sm:min-w-[160px]" ref={dateRef}>
                 <button
                   type="button"
                   onClick={() => {
                     setOpenDateMenu(!openDateMenu);
                     setOpenSubjectMenu(false);
                   }}
-                  className="w-full flex items-center justify-between gap-2 bg-white border border-[#ece3d2] hover:border-[#dfd3bc] px-3.5 py-2 rounded-xl text-xs text-slate-700 shadow-xs transition"
+                  className="w-full flex items-center justify-between gap-2 bg-white border border-[#ece3d2] hover:border-[#dfd3bc] px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs text-slate-700 shadow-xs transition"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <Calendar className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
@@ -326,8 +294,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 6 KPI Cards */}
-          <div className="grid grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-3.5 sm:gap-4">
             <KpiCard title="Total Messages" value={totalQueries} icon={<Activity className="w-4 h-4 text-blue-600" />} />
             <KpiCard title="Total Subs" value={rawData.kpi.unique_users} icon={<Users className="w-4 h-4 text-indigo-600" />} />
             <KpiCard title="Total Sessions" value={rawData.kpi.unique_sessions} icon={<Layers className="w-4 h-4 text-purple-600" />} />
@@ -342,149 +309,190 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* 8 Charts Grid */}
-          <div className="grid grid-cols-2 gap-6">
-            <div ref={chartBoxRef} className="p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs overflow-hidden">
+          {/* 8 Charts Grid: Có debounce={50} giúp chuyển động mượt, không giật lag khi đóng/mở Sidebar */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            
+            {/* Chart 1 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">1. Daily Active Learners</div>
-              <LineChart width={fixedChartWidth} height={215} data={filteredDailyTrends}>
-                <CartesianGrid stroke="#f1ede4" vertical={false} />
-                <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
-                <Tooltip 
-                  formatter={(val: any) => [`${val} Learners`, "Active Users"]} 
-                  labelFormatter={(label) => `Date: ${label}`}
-                  contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
-                />
-                <Line name="Active Learners" type="monotone" dataKey="unique_users" stroke="#0284c7" strokeWidth={2.5} dot={{ r: 4, fill: "#0284c7" }} isAnimationActive={false} />
-              </LineChart>
+              <div className="w-full h-[215px]">
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                  <LineChart data={filteredDailyTrends}>
+                    <CartesianGrid stroke="#f1ede4" vertical={false} />
+                    <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
+                    <Tooltip 
+                      formatter={(val: any) => [`${val} Learners`, "Active Users"]} 
+                      labelFormatter={(label) => `Date: ${label}`}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
+                    />
+                    <Line name="Active Learners" type="monotone" dataKey="unique_users" stroke="#0284c7" strokeWidth={2.5} dot={{ r: 4, fill: "#0284c7" }} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs overflow-hidden">
+            {/* Chart 2 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">2. Daily Study Sessions</div>
-              <LineChart width={fixedChartWidth} height={215} data={filteredDailyTrends}>
-                <CartesianGrid stroke="#f1ede4" vertical={false} />
-                <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
-                <Tooltip 
-                  formatter={(val: any) => [`${val} Sessions`, "Active Sessions"]} 
-                  labelFormatter={(label) => `Date: ${label}`}
-                  contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
-                />
-                <Line name="Study Sessions" type="monotone" dataKey="unique_sessions" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 4, fill: "#7c3aed" }} isAnimationActive={false} />
-              </LineChart>
+              <div className="w-full h-[215px]">
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                  <LineChart data={filteredDailyTrends}>
+                    <CartesianGrid stroke="#f1ede4" vertical={false} />
+                    <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
+                    <Tooltip 
+                      formatter={(val: any) => [`${val} Sessions`, "Active Sessions"]} 
+                      labelFormatter={(label) => `Date: ${label}`}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
+                    />
+                    <Line name="Study Sessions" type="monotone" dataKey="unique_sessions" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 4, fill: "#7c3aed" }} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs overflow-hidden">
+            {/* Chart 3 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">3. Inquiry Volume vs Successful Retrieval</div>
-              <LineChart width={fixedChartWidth} height={215} data={filteredDailyTrends}>
-                <CartesianGrid stroke="#f1ede4" vertical={false} />
-                <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
-                <Tooltip 
-                  formatter={(val: any, name: string) => [
-                    `${val} Queries`,
-                    name === "total_queries" ? "Total Inquiries" : "Successful Retrieval"
-                  ]} 
-                  labelFormatter={(label) => `Date: ${label}`}
-                  contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
-                <Line name="Total Inquiries" type="monotone" dataKey="total_queries" stroke="#2563eb" strokeWidth={2.5} isAnimationActive={false} />
-                <Line name="Successful Retrieval" type="monotone" dataKey="success_queries" stroke="#059669" strokeDasharray="4 4" strokeWidth={2.5} isAnimationActive={false} />
-              </LineChart>
+              <div className="w-full h-[215px]">
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                  <LineChart data={filteredDailyTrends}>
+                    <CartesianGrid stroke="#f1ede4" vertical={false} />
+                    <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
+                    <Tooltip 
+                      formatter={(val: any, name: string) => [
+                        `${val} Queries`,
+                        name === "total_queries" ? "Total Inquiries" : "Successful Retrieval"
+                      ]} 
+                      labelFormatter={(label) => `Date: ${label}`}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
+                    <Line name="Total Inquiries" type="monotone" dataKey="total_queries" stroke="#2563eb" strokeWidth={2.5} isAnimationActive={false} />
+                    <Line name="Successful Retrieval" type="monotone" dataKey="success_queries" stroke="#059669" strokeDasharray="4 4" strokeWidth={2.5} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs overflow-hidden">
+            {/* Chart 4 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">4. Question Distribution by Subject</div>
-              <BarChart width={fixedChartWidth} height={215} data={filteredSubjectDist}>
-                <CartesianGrid stroke="#f1ede4" vertical={false} />
-                <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
-                <Tooltip 
-                  formatter={(val: any) => [`${val} Questions`, "Inquiries Count"]} 
-                  labelFormatter={(label) => `Subject: ${label}`}
-                  contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
-                />
-                <Bar name="Total Questions" dataKey="total_queries" fill="#ea580c" radius={[6, 6, 0, 0]} isAnimationActive={false} />
-              </BarChart>
+              <div className="w-full h-[215px]">
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                  <BarChart data={filteredSubjectDist}>
+                    <CartesianGrid stroke="#f1ede4" vertical={false} />
+                    <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
+                    <Tooltip 
+                      formatter={(val: any) => [`${val} Questions`, "Inquiries Count"]} 
+                      labelFormatter={(label) => `Subject: ${label}`}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
+                    />
+                    <Bar name="Total Questions" dataKey="total_queries" fill="#ea580c" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs overflow-hidden">
+            {/* Chart 5 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">5. Top Match Similarity vs Similarity Threshold</div>
-              <BarChart width={fixedChartWidth} height={215} data={filteredSubjectDist}>
-                <CartesianGrid stroke="#f1ede4" vertical={false} />
-                <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} domain={[0, 1]} />
-                <Tooltip 
-                  formatter={(val: any, name: string) => [
-                    Number(val).toFixed(3),
-                    name === "avg_top_similarity" ? "Avg Match Score" : "Threshold"
-                  ]} 
-                  labelFormatter={(label) => `Subject: ${label}`}
-                  contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
-                />
-                <Legend iconType="square" wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
-                <Bar name="Avg Match Score" dataKey="avg_top_similarity" fill="#4f46e5" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                <Bar name="Threshold" dataKey="avg_threshold" fill="#cbd5e1" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-              </BarChart>
+              <div className="w-full h-[215px]">
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                  <BarChart data={filteredSubjectDist}>
+                    <CartesianGrid stroke="#f1ede4" vertical={false} />
+                    <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} domain={[0, 1]} />
+                    <Tooltip 
+                      formatter={(val: any, name: string) => [
+                        Number(val).toFixed(3),
+                        name === "avg_top_similarity" ? "Avg Match Score" : "Threshold"
+                      ]} 
+                      labelFormatter={(label) => `Subject: ${label}`}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
+                    />
+                    <Legend iconType="square" wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
+                    <Bar name="Avg Match Score" dataKey="avg_top_similarity" fill="#4f46e5" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                    <Bar name="Threshold" dataKey="avg_threshold" fill="#cbd5e1" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs overflow-hidden">
+            {/* Chart 6 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">6. Similarity Score vs Latency Correlation</div>
-              <ScatterChart width={fixedChartWidth} height={215}>
-                <CartesianGrid stroke="#f1ede4" />
-                <XAxis dataKey="top_similarity_score" name="Similarity Score" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} domain={[0, 1]} />
-                <YAxis dataKey="latency_seconds" name="Latency (s)" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} unit="s" />
-                <Tooltip 
-                  formatter={(val: any, name: string) => [
-                    name === "Similarity Score" ? Number(val).toFixed(3) : `${val}s`,
-                    name
-                  ]} 
-                  contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
-                />
-                <Scatter name="Query Execution" data={filteredScatter} fill="#d97706" isAnimationActive={false} />
-              </ScatterChart>
+              <div className="w-full h-[215px]">
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                  <ScatterChart>
+                    <CartesianGrid stroke="#f1ede4" />
+                    <XAxis dataKey="top_similarity_score" name="Similarity Score" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} domain={[0, 1]} />
+                    <YAxis dataKey="latency_seconds" name="Latency (s)" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} unit="s" />
+                    <Tooltip 
+                      formatter={(val: any, name: string) => [
+                        name === "Similarity Score" ? Number(val).toFixed(3) : `${val}s`,
+                        name
+                      ]} 
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
+                    />
+                    <Scatter name="Query Execution" data={filteredScatter} fill="#d97706" isAnimationActive={false} />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs overflow-hidden">
+            {/* Chart 7 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">7. Unretrieved Chunk Count by Subject</div>
-              <BarChart width={fixedChartWidth} height={215} data={filteredSubjectDist}>
-                <CartesianGrid stroke="#f1ede4" vertical={false} />
-                <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
-                <Tooltip 
-                  formatter={(val: any) => [`${val} Queries`, "Unretrieved (Below Threshold)"]} 
-                  labelFormatter={(label) => `Subject: ${label}`}
-                  contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
-                />
-                <Bar name="Missed Retrievals" dataKey="empty_retrievals" fill="#dc2626" radius={[6, 6, 0, 0]} isAnimationActive={false} />
-              </BarChart>
+              <div className="w-full h-[215px]">
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                  <BarChart data={filteredSubjectDist}>
+                    <CartesianGrid stroke="#f1ede4" vertical={false} />
+                    <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
+                    <Tooltip 
+                      formatter={(val: any) => [`${val} Queries`, "Unretrieved (Below Threshold)"]} 
+                      labelFormatter={(label) => `Subject: ${label}`}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
+                    />
+                    <Bar name="Missed Retrievals" dataKey="empty_retrievals" fill="#dc2626" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs overflow-hidden">
+            {/* Chart 8 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">8. Latency Bounds Over Time (Seconds)</div>
-              <LineChart width={fixedChartWidth} height={215} data={filteredDailyTrends}>
-                <CartesianGrid stroke="#f1ede4" vertical={false} />
-                <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} unit="s" />
-                <Tooltip 
-                  formatter={(val: any, name: string) => [
-                    `${val}s`,
-                    name === "max_latency" ? "Max Latency" : name === "avg_latency" ? "Avg Latency" : "Min Latency"
-                  ]} 
-                  labelFormatter={(label) => `Date: ${label}`}
-                  contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
-                />
-                <Legend iconType="plainline" wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
-                <Line name="Max Latency" type="monotone" dataKey="max_latency" stroke="#dc2626" strokeWidth={1.8} dot={false} isAnimationActive={false} />
-                <Line name="Avg Latency" type="monotone" dataKey="avg_latency" stroke="#d97706" strokeWidth={2.5} dot={{ r: 3 }} isAnimationActive={false} />
-                <Line name="Min Latency" type="monotone" dataKey="min_latency" stroke="#16a34a" strokeWidth={1.8} dot={false} isAnimationActive={false} />
-              </LineChart>
+              <div className="w-full h-[215px]">
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                  <LineChart data={filteredDailyTrends}>
+                    <CartesianGrid stroke="#f1ede4" vertical={false} />
+                    <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} unit="s" />
+                    <Tooltip 
+                      formatter={(val: any, name: string) => [
+                        `${val}s`,
+                        name === "max_latency" ? "Max Latency" : name === "avg_latency" ? "Avg Latency" : "Min Latency"
+                      ]} 
+                      labelFormatter={(label) => `Date: ${label}`}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
+                    />
+                    <Legend iconType="plainline" wrapperStyle={{ fontSize: 11, paddingTop: 4 }} />
+                    <Line name="Max Latency" type="monotone" dataKey="max_latency" stroke="#dc2626" strokeWidth={1.8} dot={false} isAnimationActive={false} />
+                    <Line name="Avg Latency" type="monotone" dataKey="avg_latency" stroke="#d97706" strokeWidth={2.5} dot={{ r: 3 }} isAnimationActive={false} />
+                    <Line name="Min Latency" type="monotone" dataKey="min_latency" stroke="#16a34a" strokeWidth={1.8} dot={false} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
           {/* Marts Log Telemetry Records Table */}
-          <div className="p-6 rounded-2xl bg-white border border-[#e2d5bd] shadow-xs space-y-4">
+          <div className="p-4 sm:p-6 rounded-2xl bg-white border border-[#e2d5bd] shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-[#f5ede0] border border-[#e5d5b3] text-amber-700">
@@ -500,7 +508,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="max-h-96 overflow-y-auto overflow-x-auto rounded-xl border border-[#ece3d2]">
-              <table className="w-full text-left border-collapse text-[11px]">
+              <table className="w-full text-left border-collapse text-[11px] min-w-[700px]">
                 <thead className="sticky top-0 z-10 bg-[#faf6ee] shadow-xs">
                   <tr className="text-slate-600 font-bold border-b border-[#ece3d2] uppercase tracking-wider">
                     <th className="py-2.5 px-3">Query SK</th>
