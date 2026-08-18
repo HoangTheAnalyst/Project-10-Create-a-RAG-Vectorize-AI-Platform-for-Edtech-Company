@@ -264,18 +264,20 @@ export default function ChatPage() {
         onDeleteConv={handleDeleteConv}
       />
 
-      <div className="flex-1 flex flex-col h-full min-w-0 max-w-4xl mx-auto px-6 py-4 overflow-hidden">
+      {/* Main Responsive Chat Box */}
+      <div className="flex-1 flex flex-col h-full min-w-0 max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4 overflow-hidden">
+        
         {/* Messages Feed Container */}
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-5 pr-2">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 sm:space-y-5 pr-1 sm:pr-2">
           {activeConv.messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-4 py-6">
-              <div className="p-3.5 rounded-2xl bg-white border border-[#ece3d2] shadow-sm">
-                <Image src="/LogoHTA.png" alt="Platform Logo" width={60} height={60} />
+            <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-3 sm:space-y-4 py-6 px-4">
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-white border border-[#ece3d2] shadow-sm">
+                <Image src="/LogoHTA.png" alt="Platform Logo" width={56} height={56} />
               </div>
-              <h2 className="text-slate-800 font-bold text-xl tracking-tight">
+              <h2 className="text-slate-800 font-bold text-lg sm:text-xl tracking-tight">
                 What can I help you with today?
               </h2>
-              <p className="text-sm max-w-md text-slate-500">
+              <p className="text-xs sm:text-sm max-w-md text-slate-500">
                 Feel free to ask the AI Tutor any academic questions or request practice exercises.
               </p>
             </div>
@@ -284,15 +286,15 @@ export default function ChatPage() {
               {activeConv.messages.map((m, idx) => (
                 <div
                   key={idx}
-                  className={`flex gap-3.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex gap-2 sm:gap-3.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {m.role !== "user" && (
-                    <div className="w-8 h-8 rounded-xl bg-[#f5ede0] border border-[#e5d5b3] flex items-center justify-center text-amber-700 flex-shrink-0 mt-1 shadow-xs">
-                      <Bot className="w-4 h-4" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#f5ede0] border border-[#e5d5b3] flex items-center justify-center text-amber-700 flex-shrink-0 mt-1 shadow-xs">
+                      <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                   )}
                   <div
-                    className={`p-4 rounded-2xl max-w-[85%] text-sm leading-relaxed ${
+                    className={`p-3 sm:p-4 rounded-2xl max-w-[90%] sm:max-w-[85%] text-xs sm:text-sm leading-relaxed ${
                       m.role === "user"
                         ? "bg-amber-500 text-white rounded-br-none shadow-md shadow-amber-500/20 font-medium"
                         : "bg-white border border-[#ece3d2] text-slate-800 rounded-bl-none shadow-xs"
@@ -329,23 +331,23 @@ export default function ChatPage() {
                           <tr className="hover:bg-[#faf6ee]/60 transition-colors" {...props} />
                         ),
                       }}
-                      className="prose prose-slate max-w-none text-sm leading-relaxed"
+                      className="prose prose-slate max-w-none text-xs sm:text-sm leading-relaxed"
                     >
                       {m.content}
                     </ReactMarkdown>
                   </div>
                   {m.role === "user" && (
-                    <div className="w-8 h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center flex-shrink-0 mt-1 shadow-xs">
-                      <User className="w-4 h-4" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center flex-shrink-0 mt-1 shadow-xs">
+                      <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                   )}
                 </div>
               ))}
 
               {loading && (
-                <div className="flex gap-3.5 items-center text-slate-500 text-xs animate-pulse">
-                  <div className="w-8 h-8 rounded-xl bg-[#f5ede0] border border-[#e5d5b3] flex items-center justify-center text-amber-600">
-                    <Bot className="w-4 h-4 animate-spin" />
+                <div className="flex gap-2.5 sm:gap-3.5 items-center text-slate-500 text-xs animate-pulse">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#f5ede0] border border-[#e5d5b3] flex items-center justify-center text-amber-600">
+                    <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   </div>
                   <span>Generating contextual explanation...</span>
                 </div>
@@ -356,17 +358,20 @@ export default function ChatPage() {
         </div>
 
         {/* Knowledge Selectors & Input Dock */}
-        <div className="mt-3 pt-2 space-y-2 flex-shrink-0">
-          <div className="flex items-center gap-3 px-1">
+        <div className="mt-2 sm:mt-3 pt-2 space-y-2 flex-shrink-0">
+          
+          {/* Responsive Dropdowns (Stack on Mobile, Row on Tablet/Desktop) */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 px-1">
+            
             {/* Subject Slicer */}
-            <div className="relative min-w-[200px]" ref={subjectRef}>
+            <div className="relative w-full sm:min-w-[180px] sm:w-auto" ref={subjectRef}>
               <button
                 type="button"
                 onClick={() => {
                   setOpenSubjectMenu(!openSubjectMenu);
                   setOpenLessonMenu(false);
                 }}
-                className="w-full flex items-center justify-between gap-2 bg-white hover:bg-[#faf6ee] border border-[#ece3d2] hover:border-[#dfd3bc] px-3.5 py-2 rounded-xl text-xs text-slate-700 shadow-xs transition duration-150"
+                className="w-full flex items-center justify-between gap-2 bg-white hover:bg-[#faf6ee] border border-[#ece3d2] hover:border-[#dfd3bc] px-3 py-2 rounded-xl text-xs text-slate-700 shadow-xs transition duration-150"
               >
                 <div className="flex items-center gap-2 truncate">
                   <BookOpen className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
@@ -379,7 +384,7 @@ export default function ChatPage() {
               </button>
 
               {openSubjectMenu && (
-                <div className="absolute bottom-full mb-2 left-0 w-full min-w-[220px] bg-white border border-[#ece3d2] rounded-2xl shadow-xl p-1.5 z-30 space-y-0.5 max-h-60 overflow-y-auto">
+                <div className="absolute bottom-full mb-2 left-0 w-full sm:min-w-[220px] bg-white border border-[#ece3d2] rounded-2xl shadow-xl p-1.5 z-30 space-y-0.5 max-h-60 overflow-y-auto">
                   <button
                     onClick={() => {
                       setSubject("All");
@@ -418,14 +423,14 @@ export default function ChatPage() {
             </div>
 
             {/* Lesson Slicer */}
-            <div className="relative flex-1" ref={lessonRef}>
+            <div className="relative w-full sm:flex-1" ref={lessonRef}>
               <button
                 type="button"
                 onClick={() => {
                   setOpenLessonMenu(!openLessonMenu);
                   setOpenSubjectMenu(false);
                 }}
-                className="w-full flex items-center justify-between gap-2 bg-white hover:bg-[#faf6ee] border border-[#ece3d2] hover:border-[#dfd3bc] px-3.5 py-2 rounded-xl text-xs text-slate-700 shadow-xs transition duration-150"
+                className="w-full flex items-center justify-between gap-2 bg-white hover:bg-[#faf6ee] border border-[#ece3d2] hover:border-[#dfd3bc] px-3 py-2 rounded-xl text-xs text-slate-700 shadow-xs transition duration-150"
               >
                 <div className="flex items-center gap-2 truncate">
                   <Layers className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
@@ -482,14 +487,14 @@ export default function ChatPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder="Ask an academic question or request practice problems..."
-              className="w-full bg-white border border-[#ece3d2] rounded-2xl pl-5 pr-14 py-3 text-sm text-slate-800 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/50 shadow-sm placeholder:text-slate-400"
+              className="w-full bg-white border border-[#ece3d2] rounded-2xl pl-4 sm:pl-5 pr-12 sm:pr-14 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/50 shadow-sm placeholder:text-slate-400"
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="absolute right-2 p-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white transition shadow-sm shadow-amber-500/20"
+              className="absolute right-1.5 sm:right-2 p-2 sm:p-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white transition shadow-sm shadow-amber-500/20"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

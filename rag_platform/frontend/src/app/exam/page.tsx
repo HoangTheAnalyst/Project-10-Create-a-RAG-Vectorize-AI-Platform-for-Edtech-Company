@@ -165,17 +165,21 @@ export default function ExamPage() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#fdfbf7]">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto min-w-0 max-w-4xl mx-auto px-8 py-8 space-y-6">
+      <div className="flex-1 overflow-y-auto min-w-0 max-w-4xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-5 sm:space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">📝 Exam Practice & Quiz Room</h1>
-          <p className="text-sm text-slate-500 mt-1">Practice Makes Perfect !</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800">📝 Exam Practice & Quiz Room</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Practice Makes Perfect !</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-[#ece3d2] shadow-sm space-y-4">
-          <div className="grid grid-cols-12 gap-4">
-            {/* Subject Selector */}
-            <div className="col-span-4 relative" ref={subjectRef}>
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Subject</label>
+        {/* Filter Selection Panel */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#ece3d2] shadow-sm space-y-4">
+          
+          {/* Mobile: 1 cột xếp chồng (grid-cols-1) | Tablet/Desktop: 12 cột (sm:grid-cols-12) */}
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4">
+            
+            {/* Subject Selector: 1 dòng trên Mobile, 4 cột trên Desktop */}
+            <div className="sm:col-span-4 relative" ref={subjectRef}>
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Subject</label>
               <button
                 type="button"
                 onClick={() => {
@@ -214,9 +218,9 @@ export default function ExamPage() {
               )}
             </div>
 
-            {/* Lesson Selector */}
-            <div className="col-span-5 relative" ref={lessonRef}>
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Lesson</label>
+            {/* Lesson Selector: 1 dòng trên Mobile, 5 cột trên Desktop */}
+            <div className="sm:col-span-5 relative" ref={lessonRef}>
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Lesson</label>
               <button
                 type="button"
                 onClick={() => {
@@ -254,9 +258,9 @@ export default function ExamPage() {
               )}
             </div>
 
-            {/* Question Count Selector (1 - 10) */}
-            <div className="col-span-3 relative" ref={limitRef}>
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Questions</label>
+            {/* Question Count Selector: 1 dòng trên Mobile, 3 cột trên Desktop */}
+            <div className="sm:col-span-3 relative" ref={limitRef}>
+              <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Questions</label>
               <button
                 type="button"
                 onClick={() => {
@@ -307,7 +311,7 @@ export default function ExamPage() {
         </div>
 
         {/* Questions Feed */}
-        <div className="space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           {questions.map((q, idx) => (
             <QuestionCard
               key={idx}
@@ -335,13 +339,13 @@ export default function ExamPage() {
 
         {/* Scoring & Review Summary Card */}
         {isSubmitted && (
-          <div className="p-6 rounded-2xl bg-white border border-[#ece3d2] shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-[#f5ede0] border border-[#e5d5b3] text-amber-700">
-                <Award className="w-7 h-7" />
+          <div className="p-4 sm:p-6 rounded-2xl bg-white border border-[#ece3d2] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-[#f5ede0] border border-[#e5d5b3] text-amber-700 flex-shrink-0">
+                <Award className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <div className="text-xl font-bold text-slate-800">
+                <div className="text-lg sm:text-xl font-bold text-slate-800">
                   {calculateScore().correct} / {calculateScore().total} Questions Correct
                 </div>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -351,7 +355,7 @@ export default function ExamPage() {
             </div>
             <button
               onClick={startQuiz}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#fdfbf7] border border-[#ece3d2] hover:bg-[#faf6ee] text-slate-700 text-xs font-bold transition shadow-xs"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#fdfbf7] border border-[#ece3d2] hover:bg-[#faf6ee] text-slate-700 text-xs font-bold transition shadow-xs w-full sm:w-auto"
             >
               <RotateCcw className="w-3.5 h-3.5 text-amber-600" /> Retake New Quiz
             </button>
