@@ -4,9 +4,9 @@ import Sidebar from "@/components/Sidebar";
 import QuestionCard from "@/components/QuestionCard";
 import { Play, RotateCcw, Award, BookOpen, Layers, Hash, ChevronDown, Check } from "lucide-react";
 
-
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 const STORAGE_KEY_EXAM = "edugenius_active_exam_state";
+const CACHE_KEY_METADATA = "cache_metadata";
 
 export default function ExamPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -52,17 +52,36 @@ export default function ExamPage() {
       }
     }
 
-    fetch(`${API_BASE}/api/metadata`)
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => {
-        setMetadata(data);
+    // Load metadata with cache prioritization
+    const cachedMeta = sessionStorage.getItem(CACHE_KEY_METADATA);
+    if (cachedMeta) {
+      try {
+        const parsedData = JSON.parse(cachedMeta);
+        setMetadata(parsedData);
         if (!savedSubject) {
-          const firstSubj = Object.keys(data)[0] || "";
+          const firstSubj = Object.keys(parsedData)[0] || "";
           setSubject(firstSubj);
-          setLesson(data[firstSubj]?.[0] || "");
+          setLesson(parsedData[firstSubj]?.[0] || "");
         }
-      })
-      .catch((err) => console.warn("Failed to fetch filter metadata:", err));
+      } catch (e) {
+        console.warn("Failed to parse cached metadata:", e);
+      }
+    } else {
+      fetch(`${API_BASE}/api/metadata`)
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((data) => {
+          if (data && Object.keys(data).length > 0) {
+            setMetadata(data);
+            sessionStorage.setItem(CACHE_KEY_METADATA, JSON.stringify(data));
+            if (!savedSubject) {
+              const firstSubj = Object.keys(data)[0] || "";
+              setSubject(firstSubj);
+              setLesson(data[firstSubj]?.[0] || "");
+            }
+          }
+        })
+        .catch((err) => console.warn("Failed to fetch filter metadata:", err));
+    }
   }, []);
 
   // Persist current quiz session to sessionStorage
@@ -107,8 +126,15 @@ export default function ExamPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject, lesson, limit }),
       });
+
+      if (!res.ok) {
+        throw new Error(`Server responded with status ${res.status}`);
+      }
+
       const data = await res.json();
       setQuestions(data.questions || []);
+    } catch (err) {
+      console.error("Failed to generate quiz questions:", err);
     } finally {
       setLoading(false);
     }

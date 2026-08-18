@@ -18,9 +18,11 @@ interface Conversation {
   subject: string;
   lesson: string;
 }
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 const STORAGE_KEY_CONVS = "edugenius_active_conversations";
 const STORAGE_KEY_ACTIVE_ID = "edugenius_active_conv_id";
+const CACHE_KEY_METADATA = "cache_metadata";
 
 const DEFAULT_CONVERSATIONS: Conversation[] = [
   {
@@ -55,6 +57,7 @@ export default function ChatPage() {
   useEffect(() => {
     setIsMounted(true);
 
+    // 1. Restore local chat session state
     const savedConvs = sessionStorage.getItem(STORAGE_KEY_CONVS);
     const savedActiveId = sessionStorage.getItem(STORAGE_KEY_ACTIVE_ID);
 
@@ -75,10 +78,25 @@ export default function ChatPage() {
       }
     }
 
-    fetch(`${API_BASE}/api/metadata`)
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => setMetadata(data))
-      .catch((err) => console.warn("Failed to fetch filter metadata:", err));
+    // 2. Fetch metadata with sessionStorage caching
+    const cachedMeta = sessionStorage.getItem(CACHE_KEY_METADATA);
+    if (cachedMeta) {
+      try {
+        setMetadata(JSON.parse(cachedMeta));
+      } catch (e) {
+        console.warn("Failed to parse cached metadata");
+      }
+    } else {
+      fetch(`${API_BASE}/api/metadata`)
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((data) => {
+          if (data && Object.keys(data).length > 0) {
+            setMetadata(data);
+            sessionStorage.setItem(CACHE_KEY_METADATA, JSON.stringify(data));
+          }
+        })
+        .catch((err) => console.warn("Failed to fetch filter metadata:", err));
+    }
   }, []);
 
   const activeConv = conversations.find((c) => c.id === activeConvId) || conversations[0];
@@ -150,10 +168,14 @@ export default function ChatPage() {
       };
       setConversations([fallbackConv]);
       setActiveConvId(fallbackId);
+      setSubject("All");
+      setLesson("All");
     } else {
       setConversations(updated);
       if (activeConvId === id) {
         setActiveConvId(updated[0].id);
+        setSubject(updated[0].subject || "All");
+        setLesson(updated[0].lesson || "All");
       }
     }
   };
@@ -196,6 +218,10 @@ export default function ChatPage() {
           history: activeConv.messages,
         }),
       });
+
+      if (!res.ok) {
+        throw new Error(`Server responded with status ${res.status}`);
+      }
 
       const data = await res.json();
       const assistantMsg: Message = { role: "assistant", content: data.reply };

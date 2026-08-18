@@ -55,21 +55,49 @@ export default function DashboardPage() {
     }, 320);
   };
 
-  // Fetch telemetry datasets and filter hierarchy on mount
+  // Fetch telemetry datasets and filter hierarchy on mount with Session Storage Caching
   useEffect(() => {
     setIsMounted(true);
 
     // 1. Fetch aggregated telemetry & Marts table records
-    fetch(`${API_BASE}/api/dashboard`)
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((d) => setRawData(d))
-      .catch((err) => console.warn("Failed to fetch dashboard data:", err));
+    const cachedDash = sessionStorage.getItem("cache_dashboard_data");
+    if (cachedDash) {
+      try {
+        setRawData(JSON.parse(cachedDash));
+      } catch (e) {
+        console.warn("Failed to parse cached dashboard data");
+      }
+    } else {
+      fetch(`${API_BASE}/api/dashboard`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((d) => {
+          if (d) {
+            setRawData(d);
+            sessionStorage.setItem("cache_dashboard_data", JSON.stringify(d));
+          }
+        })
+        .catch((err) => console.warn("Failed to fetch dashboard data:", err));
+    }
 
     // 2. Fetch metadata for slicers
-    fetch(`${API_BASE}/api/metadata`)
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => setMetadata(data))
-      .catch((err) => console.warn("Failed to fetch metadata:", err));
+    const cachedMeta = sessionStorage.getItem("cache_metadata");
+    if (cachedMeta) {
+      try {
+        setMetadata(JSON.parse(cachedMeta));
+      } catch (e) {
+        console.warn("Failed to parse cached metadata");
+      }
+    } else {
+      fetch(`${API_BASE}/api/metadata`)
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((data) => {
+          if (data) {
+            setMetadata(data);
+            sessionStorage.setItem("cache_metadata", JSON.stringify(data));
+          }
+        })
+        .catch((err) => console.warn("Failed to fetch metadata:", err));
+    }
 
     updateChartWidth();
     const handleResize = () => updateChartWidth();
@@ -455,7 +483,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Marts Log Telemetry Records Table (Scrollable with Sticky Header) */}
+          {/* Marts Log Telemetry Records Table */}
           <div className="p-6 rounded-2xl bg-white border border-[#e2d5bd] shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
