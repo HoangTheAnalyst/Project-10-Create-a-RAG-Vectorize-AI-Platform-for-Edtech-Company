@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+
+  # Backend API (FastAPI + RAG Pipeline)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rag_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    networks:
+      - rag_network
+
+  # Frontend Dashboard (Next.js Application)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_BASE=http://localhost:8000
+    container_name: rag_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - rag_network
+
+networks:
+  rag_network:
+    driver: bridge
