@@ -1,11 +1,12 @@
 import os
 from typing import List, Union
+import cohere
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+from groq import Groq
 import snowflake.connector
 
-# Load environment variables from .env files in the backend or root directory
+
+# Resolve absolute paths to load .env configuration from backend or root directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir = os.path.dirname(current_dir)
 root_dir = os.path.dirname(backend_dir)
@@ -20,43 +21,43 @@ elif os.path.exists(env_root):
 else:
     load_dotenv()
 
-# Initialize Google GenAI client
-genai_client = genai.Client()
+
+#2. Cohere embedding client (1024 Dimensions)
+cohere_api_key = os.getenv("COHERE_API_KEY")
+if not cohere_api_key:
+    raise ValueError("Missing 'COHERE_API_KEY' in .env file!")
+
+cohere_client = cohere.ClientV2(api_key=cohere_api_key)
 
 
-class GeminiEmbedder:
-    """Lightweight API-based embedder compatible with Google AI Studio SDK standards."""
+class CohereEmbedder:
+    """Lightweight API-based embedder using Cohere (1024 dimensions)."""
 
-    def __init__(self, output_dimensionality: int = 1024):
-        self.model = "gemini-embedding-001"
-        self.output_dimensionality = output_dimensionality
+    def __init__(self, model: str = "embed-multilingual-v3.0"):
+        self.model = model
 
     def encode(
         self,
         texts: Union[str, List[str]],
-        task_type: str = "RETRIEVAL_QUERY",
+        input_type: str = "search_query",
         show_progress_bar: bool = False,
         **kwargs,
     ) -> Union[List[float], List[List[float]]]:
-        """Compute dense embeddings with task-specific optimization.
-        
-        """
+        """Compute dense vector embeddings via Cohere API."""
         is_single_text = isinstance(texts, str)
         content_list = [texts] if is_single_text else texts
 
         if not content_list:
             return [] if is_single_text else []
 
-        response = genai_client.models.embed_content(
+        response = cohere_client.embed(
+            texts=content_list,
             model=self.model,
-            contents=content_list,
-            config=types.EmbedContentConfig(
-                task_type=task_type,
-                output_dimensionality=self.output_dimensionality,
-            ),
+            input_type=input_type,
+            embedding_types=["float"],
         )
 
-        vectors = [[float(val) for val in emb.values] for emb in response.embeddings]
+        vectors = [[float(val) for val in vec] for vec in response.embeddings.float]
 
         if is_single_text:
             return vectors[0]
@@ -64,10 +65,19 @@ class GeminiEmbedder:
         return vectors
 
 
-# Initialize a global embedder instance with 1024 dimensions for retrieval tasks
-embed_model = GeminiEmbedder(output_dimensionality=384)
+# Global embedding model instance for retrieval tasks
+embed_model = CohereEmbedder(model="embed-multilingual-v3.0")
 
 
+# Grok API client for advanced vector search and reasoning
+groq_api_key = os.getenv("GROQ_API_KEY")
+if not groq_api_key:
+    raise ValueError("Missing 'GROQ_API_KEY' in .env file!")
+
+grok_client = Groq(api_key=groq_api_key)
+
+
+# Snowflake database connection utility
 def get_snowflake_conn():
     """Establish and return an active Snowflake database connection."""
     user = os.getenv("SNOWFLAKE_USER")
