@@ -175,7 +175,7 @@ export default function DashboardPage() {
       <div className="flex-1 overflow-y-auto min-w-0 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           
-          {/* Header & Slicers Bar: */}
+          {/* Header & Slicers Bar */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="min-w-0 flex-1">
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 truncate">📊 Daily Analytics Report</h1>
@@ -280,7 +280,7 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Reset Filter Button: Luôn giữ nguyên trên cùng hàng */}
+              {/* Reset Filter Button */}
               {(selectedSubject !== "All" || selectedDateRange !== "All") && (
                 <button
                   onClick={() => {
@@ -315,7 +315,7 @@ export default function DashboardPage() {
           {/* 8 Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             
-            {/* Chart 1 */}
+            {/* Chart 1: Daily Active Learners */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">1. Daily Active Learners</div>
               <div className="w-full h-[215px]">
@@ -325,7 +325,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
                     <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
                     <Tooltip 
-                      formatter={(val: any) => [`${val} Learners`, "Active Users"]} 
+                      formatter={(val: any) => [`${val} Learners`, "Active Learners"]} 
                       labelFormatter={(label) => `Date: ${label}`}
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
                     />
@@ -335,7 +335,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Chart 2 */}
+            {/* Chart 2: Daily Study Sessions */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">2. Daily Study Sessions</div>
               <div className="w-full h-[215px]">
@@ -345,7 +345,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
                     <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
                     <Tooltip 
-                      formatter={(val: any) => [`${val} Sessions`, "Active Sessions"]} 
+                      formatter={(val: any) => [`${val} Sessions`, "Study Sessions"]} 
                       labelFormatter={(label) => `Date: ${label}`}
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
                     />
@@ -355,7 +355,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Chart 3 */}
+            {/* Chart 3: Inquiry Volume vs Successful Retrieval */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">3. Inquiry Volume vs Successful Retrieval</div>
               <div className="w-full h-[215px]">
@@ -365,10 +365,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
                     <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
                     <Tooltip 
-                      formatter={(val: any, name: string) => [
-                        `${val} Queries`,
-                        name === "total_queries" ? "Total Inquiries" : "Successful Retrieval"
-                      ]} 
+                      formatter={(val: any, name: any) => [`${val} Queries`, String(name)]} 
                       labelFormatter={(label) => `Date: ${label}`}
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
                     />
@@ -380,7 +377,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Chart 4 */}
+            {/* Chart 4: Question Distribution by Subject */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">4. Question Distribution by Subject</div>
               <div className="w-full h-[215px]">
@@ -390,7 +387,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
                     <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
                     <Tooltip 
-                      formatter={(val: any) => [`${val} Questions`, "Inquiries Count"]} 
+                      formatter={(val: any) => [`${val} Questions`, "Total Questions"]} 
                       labelFormatter={(label) => `Subject: ${label}`}
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
                     />
@@ -400,7 +397,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Chart 5 */}
+            {/* Chart 5: Top Match Similarity vs Similarity Threshold */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">5. Top Match Similarity vs Similarity Threshold</div>
               <div className="w-full h-[215px]">
@@ -410,10 +407,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
                     <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} domain={[0, 1]} />
                     <Tooltip 
-                      formatter={(val: any, name: string) => [
-                        Number(val).toFixed(3),
-                        name === "avg_top_similarity" ? "Avg Match Score" : "Threshold"
-                      ]} 
+                      formatter={(val: any, name: any) => [Number(val).toFixed(3), String(name)]} 
                       labelFormatter={(label) => `Subject: ${label}`}
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
                     />
@@ -425,7 +419,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Chart 6 */}
+            {/* Chart 6: Similarity Score vs Latency Correlation */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">6. Similarity Score vs Latency Correlation</div>
               <div className="w-full h-[215px]">
@@ -433,11 +427,11 @@ export default function DashboardPage() {
                   <ScatterChart>
                     <CartesianGrid stroke="#f1ede4" />
                     <XAxis dataKey="top_similarity_score" name="Similarity Score" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} domain={[0, 1]} />
-                    <YAxis dataKey="latency_seconds" name="Latency (s)" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} unit="s" />
+                    <YAxis dataKey="latency_seconds" name="Latency" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} unit="s" />
                     <Tooltip 
-                      formatter={(val: any, name: string) => [
-                        name === "Similarity Score" ? Number(val).toFixed(3) : `${val}s`,
-                        name
+                      formatter={(val: any, name: any) => [
+                        String(name).toLowerCase().includes("similarity") ? Number(val).toFixed(3) : `${Number(val).toFixed(2)}s`,
+                        String(name)
                       ]} 
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
                     />
@@ -447,7 +441,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Chart 7 */}
+            {/* Chart 7: Unretrieved Chunk Count by Subject */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">7. Unretrieved Chunk Count by Subject</div>
               <div className="w-full h-[215px]">
@@ -457,7 +451,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="selected_subject" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
                     <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
                     <Tooltip 
-                      formatter={(val: any) => [`${val} Queries`, "Unretrieved (Below Threshold)"]} 
+                      formatter={(val: any) => [`${val} Queries`, "Missed Retrievals"]} 
                       labelFormatter={(label) => `Subject: ${label}`}
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
                     />
@@ -467,7 +461,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Chart 8 */}
+            {/* Chart 8: Latency Bounds Over Time */}
             <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e2d5bd] h-72 shadow-xs flex flex-col">
               <div className="text-xs font-bold text-slate-700 mb-2">8. Latency Bounds Over Time (Seconds)</div>
               <div className="w-full h-[215px]">
@@ -477,10 +471,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="log_date" stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} />
                     <YAxis stroke="#64748b" tick={{ fontSize: 11, fontWeight: 600 }} unit="s" />
                     <Tooltip 
-                      formatter={(val: any, name: string) => [
-                        `${val}s`,
-                        name === "max_latency" ? "Max Latency" : name === "avg_latency" ? "Avg Latency" : "Min Latency"
-                      ]} 
+                      formatter={(val: any, name: any) => [`${Number(val).toFixed(2)}s`, String(name)]} 
                       labelFormatter={(label) => `Date: ${label}`}
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: 10, borderColor: "#e2d5bd", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} 
                     />
