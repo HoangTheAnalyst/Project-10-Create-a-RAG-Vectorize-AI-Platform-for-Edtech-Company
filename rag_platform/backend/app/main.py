@@ -13,6 +13,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="RAG AI Core Platform API", version="2.0.0")
 
+
+origins = [
+    "https://ai-rag-platform-three.vercel.app", 
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "*"
+]
 # Enable CORS for frontend client interactions
 app.add_middleware(
     CORSMiddleware,
