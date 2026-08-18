@@ -175,38 +175,39 @@ export default function DashboardPage() {
       <div className="flex-1 overflow-y-auto min-w-0 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           
-          {/* Header & Slicers Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">📊 Daily Analytics Report</h1>
+          {/* Header & Slicers Bar: */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 truncate">📊 Daily Analytics Report</h1>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 Live monitoring of chat interactions, vector retrieval similarity, and latency metrics.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 flex-wrap sm:flex-nowrap">
+              
               {/* Subject Slicer */}
-              <div className="relative flex-1 sm:flex-initial min-w-[150px] sm:min-w-[180px]" ref={subjectRef}>
+              <div className="relative w-[155px] sm:w-[170px] flex-shrink-0" ref={subjectRef}>
                 <button
                   type="button"
                   onClick={() => {
                     setOpenSubjectMenu(!openSubjectMenu);
                     setOpenDateMenu(false);
                   }}
-                  className="w-full flex items-center justify-between gap-2 bg-white border border-[#ece3d2] hover:border-[#dfd3bc] px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs text-slate-700 shadow-xs transition"
+                  className="w-full flex items-center justify-between gap-1.5 bg-white border border-[#ece3d2] hover:border-[#dfd3bc] px-2.5 py-2 sm:px-3 sm:py-2 rounded-xl text-xs text-slate-700 shadow-xs transition"
                 >
-                  <div className="flex items-center gap-2 truncate">
+                  <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
                     <BookOpen className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                    <span className="text-slate-400 font-medium">Subject:</span>
+                    <span className="text-slate-400 font-medium flex-shrink-0">Subject:</span>
                     <span className="font-bold text-slate-800 truncate">
-                      {selectedSubject === "All" ? "All Subjects" : selectedSubject}
+                      {selectedSubject === "All" ? "All" : selectedSubject}
                     </span>
                   </div>
-                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${openSubjectMenu ? "rotate-180 text-amber-600" : ""}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 flex-shrink-0 transition-transform duration-200 ${openSubjectMenu ? "rotate-180 text-amber-600" : ""}`} />
                 </button>
 
                 {openSubjectMenu && (
-                  <div className="absolute top-full mt-1.5 right-0 w-full bg-white border border-[#ece3d2] rounded-2xl shadow-xl p-1.5 z-30 space-y-0.5 max-h-60 overflow-y-auto">
+                  <div className="absolute top-full mt-1.5 right-0 w-48 bg-white border border-[#ece3d2] rounded-2xl shadow-xl p-1.5 z-30 space-y-0.5 max-h-60 overflow-y-auto">
                     <button
                       onClick={() => {
                         setSelectedSubject("All");
@@ -239,27 +240,27 @@ export default function DashboardPage() {
               </div>
 
               {/* Time Slicer */}
-              <div className="relative flex-1 sm:flex-initial min-w-[140px] sm:min-w-[160px]" ref={dateRef}>
+              <div className="relative w-[140px] sm:w-[155px] flex-shrink-0" ref={dateRef}>
                 <button
                   type="button"
                   onClick={() => {
                     setOpenDateMenu(!openDateMenu);
                     setOpenSubjectMenu(false);
                   }}
-                  className="w-full flex items-center justify-between gap-2 bg-white border border-[#ece3d2] hover:border-[#dfd3bc] px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs text-slate-700 shadow-xs transition"
+                  className="w-full flex items-center justify-between gap-1.5 bg-white border border-[#ece3d2] hover:border-[#dfd3bc] px-2.5 py-2 sm:px-3 sm:py-2 rounded-xl text-xs text-slate-700 shadow-xs transition"
                 >
-                  <div className="flex items-center gap-2 truncate">
+                  <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
                     <Calendar className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                    <span className="text-slate-400 font-medium">Time:</span>
+                    <span className="text-slate-400 font-medium flex-shrink-0">Time:</span>
                     <span className="font-bold text-slate-800 truncate">
                       {dateOptions.find((d) => d.value === selectedDateRange)?.label}
                     </span>
                   </div>
-                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${openDateMenu ? "rotate-180 text-amber-600" : ""}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 flex-shrink-0 transition-transform duration-200 ${openDateMenu ? "rotate-180 text-amber-600" : ""}`} />
                 </button>
 
                 {openDateMenu && (
-                  <div className="absolute top-full mt-1.5 right-0 w-full bg-white border border-[#ece3d2] rounded-2xl shadow-xl p-1.5 z-30 space-y-0.5">
+                  <div className="absolute top-full mt-1.5 right-0 w-40 bg-white border border-[#ece3d2] rounded-2xl shadow-xl p-1.5 z-30 space-y-0.5">
                     {dateOptions.map((opt) => (
                       <button
                         key={opt.value}
@@ -279,21 +280,23 @@ export default function DashboardPage() {
                 )}
               </div>
 
+              {/* Reset Filter Button: Luôn giữ nguyên trên cùng hàng */}
               {(selectedSubject !== "All" || selectedDateRange !== "All") && (
                 <button
                   onClick={() => {
                     setSelectedSubject("All");
                     setSelectedDateRange("All");
                   }}
-                  className="p-2 rounded-xl bg-white border border-[#ece3d2] hover:bg-[#faf6ee] text-slate-500 hover:text-amber-700 transition shadow-xs"
+                  className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#ece3d2] hover:bg-[#faf6ee] text-slate-500 hover:text-amber-700 transition shadow-xs flex-shrink-0 flex items-center justify-center"
                   title="Reset Filters"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
           </div>
 
+          {/* 6 KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-3.5 sm:gap-4">
             <KpiCard title="Total Messages" value={totalQueries} icon={<Activity className="w-4 h-4 text-blue-600" />} />
             <KpiCard title="Total Subs" value={rawData.kpi.unique_users} icon={<Users className="w-4 h-4 text-indigo-600" />} />
@@ -309,7 +312,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* 8 Charts Grid: Có debounce={50} giúp chuyển động mượt, không giật lag khi đóng/mở Sidebar */}
+          {/* 8 Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             
             {/* Chart 1 */}
