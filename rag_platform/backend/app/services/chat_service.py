@@ -56,8 +56,8 @@ def retrieve_chunks(
                     f.content,
                     f.chunk_type,
                     VECTOR_COSINE_SIMILARITY(
-                        f.chunk_vector::VECTOR(FLOAT, 1024),
-                        PARSE_JSON(%s)::VECTOR(FLOAT, 1024)
+                        f.chunk_vector::VECTOR(FLOAT, 384),
+                        PARSE_JSON(%s)::VECTOR(FLOAT, 384)
                     ) AS similarity_score
                 FROM MARTS.FCT_CHUNKS f
                 JOIN MARTS.DIM_LESSON d ON f.lesson_sk = d.lesson_sk

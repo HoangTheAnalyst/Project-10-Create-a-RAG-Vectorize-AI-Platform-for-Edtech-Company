@@ -7,7 +7,7 @@ from sentence_transformers import SentenceTransformer
 # 1. HELPER / MODEL INITIALIZATION
 # ----------------------------------------------------------------------
 def load_embedding_model(
-    model_name: str = "BAAI/bge-m3",
+    model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
 ) -> SentenceTransformer:
     """Load and return the sentence transformer embedding model."""
     print(f"⏳ Loading embedding model: '{model_name}'...")
@@ -34,7 +34,7 @@ def process_file_embedding(
         f"{c.get('section_title', '')}: {c.get('content', '')}" for c in chunks
     ]
 
-    # Generate vectors (1024-dimensional dense vectors)
+    # Generate dense vectors (384 dimensions)
     vectors = embed_model.encode(texts, show_progress_bar=False)
 
     # Attach vectors to chunks
@@ -54,7 +54,7 @@ def process_file_embedding(
 def batch_embed_documents(
     input_base: str,
     output_base: str,
-    model_name: str = "BAAI/bge-m3",
+    model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
 ):
     """Recursively scan input directory, generate embeddings, and mirror output structure."""
     input_path = Path(input_base)
@@ -121,8 +121,8 @@ if __name__ == "__main__":
         "-m",
         "--model",
         type=str,
-        default="BAAI/bge-m3",
-        help="HuggingFace model identifier for sentence embeddings (Default: BAAI/bge-m3)",
+        default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        help="HuggingFace model identifier for sentence embeddings (Default: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)",
     )
 
     args = parser.parse_args()

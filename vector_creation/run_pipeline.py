@@ -173,7 +173,7 @@ if __name__ == "__main__":
         "-m",
         "--model",
         type=str,
-        default="BAAI/bge-m3",
+        default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
         help="SentenceTransformer model identifier",
     )
     parser.add_argument(

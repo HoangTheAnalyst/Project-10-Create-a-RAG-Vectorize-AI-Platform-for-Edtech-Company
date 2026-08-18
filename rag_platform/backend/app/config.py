@@ -20,7 +20,7 @@ else:
     load_dotenv()
 
 # Initialize 1024-dimensional embedding model in memory
-embed_model = SentenceTransformer("BAAI/bge-m3")
+embed_model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
 # Initialize Google GenAI client
 genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
