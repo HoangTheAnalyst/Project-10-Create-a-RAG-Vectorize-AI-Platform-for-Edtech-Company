@@ -11,7 +11,7 @@ class ChatRequest(BaseModel):
     query: str
     subject: str = "All"
     lesson: str = "All"
-    threshold: float = 0.50
+    threshold: float = 0.55
     history: List[Dict[str, str]] = []
 
 
