@@ -174,10 +174,10 @@ export default function ExamPage() {
         {/* Filter Selection Panel */}
         <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#ece3d2] shadow-sm space-y-4">
           
-          {/* Mobile: 1 cột xếp chồng (grid-cols-1) | Tablet/Desktop: 12 cột (sm:grid-cols-12) */}
+          {/* Mobile*/}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4">
             
-            {/* Subject Selector: 1 dòng trên Mobile, 4 cột trên Desktop */}
+            {/* Subject Selector*/}
             <div className="sm:col-span-4 relative" ref={subjectRef}>
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Subject</label>
               <button
@@ -218,7 +218,7 @@ export default function ExamPage() {
               )}
             </div>
 
-            {/* Lesson Selector: 1 dòng trên Mobile, 5 cột trên Desktop */}
+            {/* Lesson Selector*/}
             <div className="sm:col-span-5 relative" ref={lessonRef}>
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Lesson</label>
               <button
@@ -258,7 +258,7 @@ export default function ExamPage() {
               )}
             </div>
 
-            {/* Question Count Selector: 1 dòng trên Mobile, 3 cột trên Desktop */}
+            {/* Question Count Selector */}
             <div className="sm:col-span-3 relative" ref={limitRef}>
               <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Questions</label>
               <button

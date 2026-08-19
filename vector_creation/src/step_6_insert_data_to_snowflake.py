@@ -73,9 +73,9 @@ def load_to_snowflake(input_base: str = "vector_creation/documents/embedded_docu
         # 2. Ensure target RAW schema exists
         cur.execute("CREATE SCHEMA IF NOT EXISTS RAW;")
 
-        # 3. Create or replace RAW_CHUNKS table
+        # 3. Create RAW_CHUNKS table
         create_table_sql = """
-        CREATE OR REPLACE TABLE RAW_CHUNKS (
+        CREATE TABLE RAW_CHUNKS IF NOT EXISTS (
             chunk_id VARCHAR(255),
             file_name VARCHAR(255),
             subject VARCHAR(100),

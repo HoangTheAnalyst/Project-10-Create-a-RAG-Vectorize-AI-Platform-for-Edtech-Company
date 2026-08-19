@@ -60,7 +60,7 @@ export default function Sidebar({
 
   return (
     <>
-      {/* 1. Nút mở Sidebar (Trigger) khi Sidebar đang đóng */}
+      {/* 1. Sidebar Open Button When Sidebar is Collapsed */}
       {isCollapsed && (
         <button
           onClick={handleToggle}
@@ -71,7 +71,7 @@ export default function Sidebar({
         </button>
       )}
 
-      {/* 2. Lớp nền mờ chỉ kích hoạt trên Mobile/Tablet nhỏ */}
+      {/* 2. Opacity Only Activate In Small Screens */}
       {!isCollapsed && (
         <div
           onClick={handleToggle}
@@ -79,7 +79,7 @@ export default function Sidebar({
         />
       )}
 
-      {/* 3. Khung Sidebar */}
+      {/* 3. Sidebar Frame */}
       <aside 
         className={`bg-[#faf6ee] border-r border-[#ece3d2] flex flex-col h-screen select-none z-50 transition-all duration-180 ease-out overflow-hidden
           fixed inset-y-0 left-0 shadow-xl md:shadow-none
@@ -91,7 +91,7 @@ export default function Sidebar({
           }
         `}
       >
-        {/* Header: Logo + Brand + NÚT ĐÓNG SIDEBAR DUY NHẤT */}
+
         <div className="flex items-center justify-between h-12 mb-3 sm:mb-4 px-1 flex-shrink-0">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white border border-[#ece3d2] shadow-xs flex items-center justify-center p-1 sm:p-1.5 flex-shrink-0">
@@ -104,7 +104,7 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Nút đóng Sidebar nằm ở góc trên bên phải Header trong mọi trường hợp */}
+          {/* Sidebar Toggle Button */}
           <button 
             onClick={handleToggle}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-[#f3e9d2] transition-colors duration-100 flex-shrink-0"
