@@ -58,10 +58,10 @@ Follow this sequence to ingest document data, run data warehouse transformations
    SNOWFLAKE_DATABASE=RAG_AI_PLATFORM
    SNOWFLAKE_SCHEMA=RAW
    ```
-
-3. **Run the Ingestion Pipeline:**
+3. **Putting Source Documents**: Place your source `docx` documents in the `vector_creation/documents/docx_documents/{Exercise, Lecture}` directory. 
+4. **Run the Ingestion Pipeline:**
    ```bash
-   python run_pipeline.py
+   python vector_creation/run_pipeline.py
    deactivate
    cd ..
    ```

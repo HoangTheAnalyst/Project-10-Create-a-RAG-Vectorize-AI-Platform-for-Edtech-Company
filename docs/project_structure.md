@@ -41,6 +41,7 @@ The project is organized into several directories, each serving a specific purpo
 │   │   ├── package.json              # Node dependencies & build scripts
 │   │   ├── postcss.config.js
 │   │   ├── tailwind.config.js
+│   │   ├── .next.config.mjs          # Next.js build configuration & standalone output settings
 │   │   └── tsconfig.json
 │   │
 │   └── docker-compose.yml            # Multi-service container orchestration
