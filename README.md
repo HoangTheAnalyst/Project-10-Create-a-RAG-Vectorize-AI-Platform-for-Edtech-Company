@@ -1,8 +1,8 @@
-# 🎓 Enterprise RAG AI Platform & Telemetry Data Warehouse
+# 🎓Project 10: Create a RAG AI Platform For Edtech Company
 
 An end-to-end Retrieval-Augmented Generation (RAG) ecosystem and analytics engineering platform built on **Snowflake**, **dbt**, **FastAPI**, and **Next.js 14**. The system automates educational curriculum ingestion, native vector cosine retrieval, and telemetry observability marts.
 
-[Deployment Platform](https://ai-rag-platform-three.vercel.app/dashboard)
+[Live Demo](https://ai-rag-platform-three.vercel.app/dashboard)
 (Please wait 10 - 50 seconds for the backend to warm up on Vercel free-tier hosting.)
 ---
 
